@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <PreferenceCategory android:title="تنظیمات">
+
+
+        <Preference
+            android:key="@string/key_region"
+            android:summary="@string/summary_region"
+            android:title="@string/title_region" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="@string/pref_header_about">
+
+        <Preference
+            android:key="@string/key_version"
+            android:summary="@string/app_version_name"
+            android:title="@string/app_version" />
+        <Preference
+            android:key="@string/key_check_changelog"
+            android:summary="@string/Summary_changelog"
+            android:title="@string/title_changelog" />
+        <Preference
+            android:summary="@string/developer_id"
+            android:title="@string/developer" />
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="ارتباط با توسعه دهنده">
+        <Preference
+            android:key="@string/key_send_star"
+            android:summary="@string/summary_support_star"
+            android:title="@string/title_send_feedback_star" />
+        <Preference
+            android:key="@string/key_send_feedback"
+            android:summary="@string/summary_support"
+            android:title="@string/title_send_feedback" />
+        <Preference
+            android:key="@string/key_telegram"
+            android:summary="@string/summary_telegram"
+            android:title="@string/title_telegram" />
+    </PreferenceCategory>
+</PreferenceScreen>

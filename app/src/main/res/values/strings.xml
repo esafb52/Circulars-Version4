@@ -1,0 +1,55 @@
+<resources>
+    <string name="app_name">بخشنامه</string>
+    <string name="title_profile">بخشنامه ها</string>
+    <string name="title_gifts">دانلود شده</string>
+    <string name="title_shop">تنظیمات</string>
+    <string name="save">ذخیره سرور</string>
+    <string name="cancel">انصراف</string>
+    <string name="downloaded_Message">دانلود شده،اینجا لمس کنید</string>
+    <string name="cafebazaar_error">کافه بازار روی دستگاه شما نصب نمی باشد</string>
+    <string name="search_hint">جستجو...</string>
+    <string name="error_downloading">دریافت اطلاعات با خطا مواجه شد</string>
+    <string name="select_region">لطفا منطقه خود را انتخاب کنید</string>
+    <string name="action_search">جستجو</string>
+    <string name="action_delete">حذف</string>
+    <string name="changeServerTitle">تغییر منطقه</string>
+    <string name="settings">تنظیمات</string>
+
+    //About Page
+    <string name="developer">برنامه نویس</string>
+    <string name="developer_id">سید مهدی حسینی قیداری</string>
+    <string name="contact_us">تماس با ما</string>
+    <string name="app_version">نسخه</string>
+    <string name="app_version_name">شماره نسخه</string>
+    <string name="email">mahdidvb72@gmail.com</string>
+    <string name="app_version_code">شماره ساخت </string>
+    <string name="report">گزارش مشکل،درخواست</string>
+    <string name="github_user">ghost1372/Circulars</string>
+    <string name="close">بستن</string>
+    <string name="telegram_pm">ارسال پیام به تلگرام توسعه دهنده</string>
+    <string name="telegram_error">تلگرام روی گوشی شما پیدا نشد</string>
+    <string name="telegram_user">tg://resolve?domain=KlausM72</string>
+    <string name="copy_right">Copyrights © %1$d</string>
+    <string name="description">در راستای کمک به اقتصاد مقاومتی و صرفه جویی در مصرف کاغذ و جلوگیری از هزینه های اضافی، ادارات اموزش وپرورش رویه خود را از چاپ کاغذی به انتشار در سایت اداره منطقه مبادرت نموده اند، باتوجه به اینکه اکثر معلمان درمناطق کمترتوسعه یافته مدیر اموزگارهستند و به اینترنت پرسرعت دسترسی ندارند، برنامه ای ساختیم با کمترین سرعت به صورت خودکار، سریع و آسان تر بخشنامه ها را در گوشی های هوشمند اندروید دانلود کنید.تمامی اطلاعات بدون واسطه و مستقیما از سرورهای اصلی ادارات دریافت می شوند.نرم افزار کاملا رایگان بوده و اکثر مناطق استان زنجان را تحت پوشش قرار می دهد. در صورت عدم وجود منطقه موردنظر کافیست آن را به ما اطلاع دهید.</string>
+    <string name="changeLogTitle">تاریخچه نسخه ها</string>
+
+
+    <string name="title_region">تغییر منطقه</string>
+    <string name="title_telegram">ارسال پیام به تلگرام</string>
+    <string name="title_changelog">تاریخچه</string>
+    <string name="summary_region">تغییر منطقه جهت دریافت بخشنامه های مربوطه</string>
+    <string name="summary_telegram">ارسال پیام به تلگرام توسعه دهنده</string>
+    <string name="Summary_changelog">مشاهده جزئیات تاریخچه نسخه</string>
+    <string name="pref_header_about">درباره</string>
+    <string name="summary_support">ارسال درخواست، راهنمایی، رفع اشکال، گزارش مشکل به ایمیل توسعه دهنده</string>
+    <string name="summary_support_star">ثبت امتیاز به برنامه در مارکت بازار</string>
+    <string name="title_send_feedback">ارتباط با ما</string>
+    <string name="title_send_feedback_star">حمایت از برنامه</string>
+    <string name="choose_email_client">Choose email client</string>
+    <string name="key_region">key_region</string>
+    <string name="key_send_feedback">key_send_feedback</string>
+    <string name="key_send_star">key_send_star</string>
+    <string name="key_check_changelog">key_check_changelog</string>
+    <string name="key_telegram">key_telegram</string>
+    <string name="key_version">key_version</string>
+</resources>
