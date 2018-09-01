@@ -8,13 +8,7 @@
 
 
 ## Images
-![Optional Text](ScreenShot/ir.mahdi.circulars1.jpg)
-![Optional Text](ScreenShot/ir.mahdi.circulars2.jpg)
-![Optional Text](ScreenShot/ir.mahdi.circulars3.jpg)
-![Optional Text](ScreenShot/ir.mahdi.circulars4.jpg)
-![Optional Text](ScreenShot/ir.mahdi.circulars5.jpg)
-![Optional Text](ScreenShot/ir.mahdi.circulars6.jpg)
-![Optional Text](ScreenShot/ir.mahdi.circulars8.jpg)
+![Optional Text](ScreenShot/ScreenShot.png)
 
 ## Previous Version
 <br>
