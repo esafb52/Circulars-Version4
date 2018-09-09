@@ -14,8 +14,8 @@ android {
         applicationId "ir.mahdi.circulars"
         minSdkVersion 17
         targetSdkVersion 27
-        versionCode 970606
-        versionName "4.1"
+        versionCode 970618
+        versionName "4.2"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
         signingConfig signingConfigs.release
@@ -42,10 +42,8 @@ dependencies {
     implementation 'com.github.bumptech.glide:glide:4.6.1'
     implementation 'io.github.inflationx:calligraphy3:3.0.0'
     implementation 'io.github.inflationx:viewpump:1.0.0'
-
     implementation 'com.afollestad.material-dialogs:core:0.9.6.0'
     implementation 'com.afollestad.material-dialogs:commons:0.9.6.0'
-
     implementation 'org.jsoup:jsoup:1.11.3'
     implementation 'com.android.support.constraint:constraint-layout:1.1.2'
     testImplementation 'junit:junit:4.12'
