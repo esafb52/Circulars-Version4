@@ -3,10 +3,10 @@ apply plugin: 'com.android.application'
 android {
     signingConfigs {
         release {
-            keyAlias ''
-            keyPassword ''
-            storeFile file('E:/Programming/01')
-            storePassword ''
+            storeFile rootProject.file("app/testapp.jks")
+            storePassword System.getProperty("APPCENTER_KEYSTORE_PASSWORD")
+            keyAlias System.getProperty("APPCENTER_KEY_ALIAS")
+            keyPassword System.getProperty("APPCENTER_KEY_PASSWORD")
         }
     }
     compileSdkVersion 27
