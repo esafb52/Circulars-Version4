@@ -157,6 +157,8 @@ public class OfflineActivity extends AppCompatActivity implements FileChooserDia
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_main, menu);
         final MenuItem item = menu.findItem(R.id.action_search);
+        final MenuItem goneItem = menu.findItem(R.id.action_server);
+        goneItem.setVisible(false);
         final SearchView searchView = (SearchView) MenuItemCompat.getActionView(item);
         searchView.setQueryHint(getString(R.string.search_hint));
         searchView.setOnQueryTextListener(this);
