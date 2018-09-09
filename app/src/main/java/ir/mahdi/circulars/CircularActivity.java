@@ -39,6 +39,7 @@ import com.downloader.OnDownloadListener;
 import com.downloader.OnProgressListener;
 import com.downloader.PRDownloader;
 import com.downloader.Progress;
+import com.facebook.shimmer.ShimmerFrameLayout;
 import com.microsoft.appcenter.AppCenter;
 import com.microsoft.appcenter.analytics.Analytics;
 import com.microsoft.appcenter.crashes.Crashes;
@@ -98,6 +99,7 @@ public class CircularActivity extends AppCompatActivity implements SwipeRefreshL
     String ArchivePath;
     String ArchiveFolderName;
     RecyclerView.LayoutManager mLayoutManager;
+    ShimmerFrameLayout shimmerContainer;
     TextView txtNonItem;
 
     public static boolean createDirIfNotExists(String path) {
@@ -129,6 +131,7 @@ public class CircularActivity extends AppCompatActivity implements SwipeRefreshL
 
         recyclerView = findViewById(R.id.recycler_view);
 
+        shimmerContainer = (ShimmerFrameLayout) findViewById(R.id.shimmer_view_container);
 
         swipeRefreshLayout = findViewById(R.id.swipe_refresh_layout);
         swipeRefreshLayout.setOnRefreshListener(this);
@@ -146,7 +149,7 @@ public class CircularActivity extends AppCompatActivity implements SwipeRefreshL
         if (Prefs.getLUANCH(getApplicationContext()) == 0) {
             chooseServer();
         } else {
-            swipeRefreshLayout.setRefreshing(true);
+            showShimmerEffect(true);
             new JsoupListView().execute();
         }
         actionModeCallback = new ActionModeCallback();
@@ -330,6 +333,17 @@ public class CircularActivity extends AppCompatActivity implements SwipeRefreshL
 
     }
 
+    private void showShimmerEffect(boolean isTrue){
+        if (isTrue){
+            shimmerContainer.setVisibility(View.VISIBLE);
+            swipeRefreshLayout.setRefreshing(false);
+            shimmerContainer.startShimmerAnimation();
+        }else {
+            shimmerContainer.setVisibility(View.GONE);
+            swipeRefreshLayout.setRefreshing(false);
+            shimmerContainer.stopShimmerAnimation();
+        }
+    }
     //-1 short
     //0 long
     private void snackbarShow(String message, int length) {
@@ -398,7 +412,7 @@ public class CircularActivity extends AppCompatActivity implements SwipeRefreshL
                         Prefs.setSERVER(getApplicationContext(), which);
                         getToolbarTitle();
                         new JsoupListView().execute();
-                        swipeRefreshLayout.setRefreshing(true);
+                        showShimmerEffect(true);
                         Prefs.setLUANCH(getApplicationContext(), 1);
                         return false;
                     }
@@ -470,6 +484,7 @@ public class CircularActivity extends AppCompatActivity implements SwipeRefreshL
         clear();
         messages.clear();
         getToolbarTitle();
+        showShimmerEffect(true);
         new JsoupListView().execute();
     }
 
@@ -767,7 +782,7 @@ public class CircularActivity extends AppCompatActivity implements SwipeRefreshL
         public boolean onCreateActionMode(ActionMode mode, Menu menu) {
             mode.getMenuInflater().inflate(R.menu.menu_action_mode, menu);
 
-            swipeRefreshLayout.setEnabled(false);
+            showShimmerEffect(false);
             return true;
         }
 
@@ -792,7 +807,7 @@ public class CircularActivity extends AppCompatActivity implements SwipeRefreshL
         @Override
         public void onDestroyActionMode(ActionMode mode) {
             mAdapter.clearSelections();
-            swipeRefreshLayout.setEnabled(true);
+            showShimmerEffect(false);
             swipeRefreshLayout.setColorSchemeColors(getRandomMaterialColor("400"));
             actionMode = null;
             recyclerView.post(new Runnable() {
@@ -880,7 +895,7 @@ public class CircularActivity extends AppCompatActivity implements SwipeRefreshL
                     txtNonItem.setVisibility(View.INVISIBLE);
 
                 mAdapter.notifyDataSetChanged();
-                swipeRefreshLayout.setRefreshing(false);
+                showShimmerEffect(false);
 
             } catch (Exception e) {
 

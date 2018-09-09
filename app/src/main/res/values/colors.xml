@@ -13,4 +13,5 @@
     <color name="row_activated">#e0e0e0</color>
     <color name="bg_action_mode">#757575</color>
     <color name="bg_circle_default">#666666</color>
+    <color name="placeholder_bg">#dddddd</color>
 </resources>
