@@ -334,6 +334,7 @@ public class CircularActivity extends AppCompatActivity implements SwipeRefreshL
     }
 
     private void showShimmerEffect(boolean isTrue){
+        shimmerContainer.setAngle(ShimmerFrameLayout.MaskAngle.CW_180);
         if (isTrue){
             shimmerContainer.setVisibility(View.VISIBLE);
             swipeRefreshLayout.setRefreshing(false);
