@@ -2,11 +2,11 @@ apply plugin: 'com.android.application'
 
 android {
     signingConfigs {
-       releaseSigningConfig {
-            storeFile rootProject.file("app/myPublicRelease.jks")
-            storePassword System.getProperty("APPCENTER_KEYSTORE_PASSWORD")
-            keyAlias System.getProperty("APPCENTER_KEY_ALIAS")
-            keyPassword System.getProperty("APPCENTER_KEY_PASSWORD")
+        release {
+            keyAlias ''
+            keyPassword ''
+            storeFile file('E:/Programming/01')
+            storePassword ''
         }
     }
     compileSdkVersion 27
@@ -24,7 +24,6 @@ android {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-            signingConfig signingConfigs.releaseSigningConfig
         }
     }
     productFlavors {
