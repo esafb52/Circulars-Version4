@@ -143,7 +143,8 @@ public class CircularActivity extends AppCompatActivity implements SwipeRefreshL
         recyclerView.setItemAnimator(new DefaultItemAnimator());
         messages = new ArrayList<>();
         mAdapter = new MessagesAdapter(this, messages, this);
-        recyclerView.addItemDecoration(new DividerItemDecoration(this, LinearLayoutManager.VERTICAL));
+        recyclerView.addItemDecoration(new DividerItemDecoration(this, LinearLayoutManager.VERTICAL, 16));
+
 
         recyclerView.setAdapter(mAdapter);
         if (Prefs.getLUANCH(getApplicationContext()) == 0) {
