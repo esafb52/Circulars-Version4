@@ -3,6 +3,14 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:padding="@dimen/activity_padding">
+    <View
+        android:id="@+id/progressBar"
+        android:layout_gravity="bottom"
+        android:layout_width="match_parent"
+        android:layout_height="10dp"
+        android:layout_marginBottom="-10dp"
+        android:layout_above="@id/icon_container"
+        android:background="@color/placeholder_bg" />
     <RelativeLayout
         android:id="@+id/icon_container"
         android:layout_width="wrap_content"
@@ -10,6 +18,7 @@
         android:layout_alignParentEnd="true"
         android:layout_alignParentRight="true"
         android:layout_alignParentTop="true"
+        android:layout_marginTop="20dp"
         android:orientation="vertical">
 
         <RelativeLayout
@@ -36,6 +45,7 @@
         android:layout_toLeftOf="@+id/icon_container"
         android:clickable="true"
         android:orientation="vertical"
+        android:layout_marginTop="20dp"
         android:paddingLeft="2dp"
         android:paddingRight="@dimen/padding_list_row">
 
@@ -68,14 +78,6 @@
             android:layout_width="100dp"
             android:layout_height="10dp"
             android:layout_marginBottom="10dp"
-            android:background="@color/placeholder_bg" />
-        <View
-            android:id="@+id/progressBar"
-            android:layout_gravity="bottom"
-            android:layout_width="match_parent"
-            android:layout_height="10dp"
-            android:layout_marginBottom="10dp"
-            android:layout_below="@id/timestamp"
             android:background="@color/placeholder_bg" />
     </LinearLayout>
 </RelativeLayout>

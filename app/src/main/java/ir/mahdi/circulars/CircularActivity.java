@@ -126,7 +126,6 @@ public class CircularActivity extends AppCompatActivity implements SwipeRefreshL
 
         getToolbarTitle();
 
-
         txtNonItem = findViewById(R.id.txtNonItem);
 
         recyclerView = findViewById(R.id.recycler_view);
@@ -136,6 +135,7 @@ public class CircularActivity extends AppCompatActivity implements SwipeRefreshL
         swipeRefreshLayout = findViewById(R.id.swipe_refresh_layout);
         swipeRefreshLayout.setOnRefreshListener(this);
         swipeRefreshLayout.setColorSchemeColors(getRandomMaterialColor("400"));
+        progressBar = findViewById(R.id.progressBar);
 
 
         mLayoutManager = new LinearLayoutManager(getApplicationContext());
@@ -562,8 +562,6 @@ public class CircularActivity extends AppCompatActivity implements SwipeRefreshL
     @Override
     public void onMessageRowClicked(int position) {
 
-        progressBar = recyclerView.findViewHolderForPosition(position).itemView.findViewById(R.id.progressBar);
-
         if (mAdapter.getSelectedItemCount() > 0) {
             enableActionMode(position);
 
@@ -622,7 +620,7 @@ public class CircularActivity extends AppCompatActivity implements SwipeRefreshL
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 isStoragePermissionGranted();
             }
-            progressBar.setVisibility(View.VISIBLE);
+            progressBar.setProgress(0);
             new GetFileInfo(new GetFileInfo.GetFileInfoListener() {
                 @Override
                 public void onTaskCompleted(String fileName) {
@@ -650,13 +648,12 @@ public class CircularActivity extends AppCompatActivity implements SwipeRefreshL
                                 public void onProgress(Progress progress) {
                                     long progressPercent = progress.currentBytes * 100 / progress.totalBytes;
                                     progressBar.setProgress((int) progressPercent);
-                                    progressBar.setIndeterminate(false);
                                 }
                             })
                             .start(new OnDownloadListener() {
                                 @Override
                                 public void onDownloadComplete() {
-                                    progressBar.setVisibility(View.INVISIBLE);
+                                    progressBar.setProgress(0);
                                     isClickable = true;
 
                                     if (ArchivePath.contains("zip")) {
@@ -678,7 +675,7 @@ public class CircularActivity extends AppCompatActivity implements SwipeRefreshL
                                 @Override
                                 public void onError(Error error) {
                                     snackbarShow("دانلود با خطا مواجه شد", -1);
-                                    progressBar.setVisibility(View.INVISIBLE);
+                                    progressBar.setProgress(0);
                                     isClickable = true;
                                 }
                             });
