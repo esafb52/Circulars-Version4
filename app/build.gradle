@@ -14,8 +14,8 @@ android {
         applicationId "ir.mahdi.circulars"
         minSdkVersion 17
         targetSdkVersion 27
-        versionCode 970618
-        versionName "4.2"
+        versionCode 970619
+        versionName "4.3"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
         signingConfig signingConfigs.release
