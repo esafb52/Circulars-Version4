@@ -18,6 +18,7 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.ActionBar;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.view.ActionMode;
 import android.support.v7.widget.DefaultItemAnimator;
@@ -31,8 +32,6 @@ import android.webkit.URLUtil;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
-import com.afollestad.materialdialogs.GravityEnum;
-import com.afollestad.materialdialogs.MaterialDialog;
 import com.afollestad.materialdialogs.folderselector.FileChooserDialog;
 import com.downloader.Error;
 import com.downloader.OnDownloadListener;
@@ -126,6 +125,7 @@ public class CircularActivity extends AppCompatActivity implements SwipeRefreshL
         createDirIfNotExists("بخشنامه");
 
         getToolbarTitle();
+
 
         txtNonItem = findViewById(R.id.txtNonItem);
 
@@ -399,46 +399,35 @@ public class CircularActivity extends AppCompatActivity implements SwipeRefreshL
         fileOrDirectory.delete();
     }
     private void chooseServer() {
-        new MaterialDialog.Builder(this)
-                .title(getString(R.string.select_region))
-                .titleGravity(GravityEnum.END)
-                .itemsGravity(GravityEnum.END)
-                .btnStackedGravity(GravityEnum.END)
-                .buttonsGravity(GravityEnum.END)
-                .contentGravity(GravityEnum.END)
-                .items(R.array.server)
-                .itemsCallbackSingleChoice(Prefs.getSERVER(getApplicationContext()), new MaterialDialog.ListCallbackSingleChoice() {
-                    @Override
-                    public boolean onSelection(MaterialDialog dialog, View itemView, int which, CharSequence text) {
-                        clear();
-                        Prefs.setSERVER(getApplicationContext(), which);
-                        getToolbarTitle();
-                        new JsoupListView().execute();
-                        showShimmerEffect(true);
-                        Prefs.setLUANCH(getApplicationContext(), 1);
-                        return false;
-                    }
-                })
-                .cancelListener(new MaterialDialog.OnCancelListener() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this, R.style.AlertDialogCustom);
+        builder.setTitle(getString(R.string.select_region));
+        builder.setCancelable(false);
 
-                    @Override
-                    public void onCancel(DialogInterface dialog) {
-                        if (Prefs.getLUANCH(getApplicationContext()) == 0) {
-                            finish();
-                        }
-                    }
-                })
-                .dividerColorRes(R.color.colorPrimary)
-                .positiveColorRes(R.color.colorPrimary)
-                .neutralColorRes(R.color.colorPrimary)
-                .negativeColorRes(R.color.colorPrimary)
-                .widgetColorRes(R.color.colorPrimary)
-                .buttonRippleColorRes(R.color.colorPrimary)
-                .positiveText(getString(R.string.save))
-                .negativeText(getString(R.string.cancel))
-                .cancelable(false)
-                .show();
-
+        builder.setSingleChoiceItems(R.array.server, Prefs.getSERVER(getApplicationContext()), new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                clear();
+                Prefs.setSERVER(getApplicationContext(), i);
+                getToolbarTitle();
+                showShimmerEffect(true);
+                Prefs.setLUANCH(getApplicationContext(), 1);
+            }
+        });
+        builder.setPositiveButton("ذخیره سرور", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                new JsoupListView().execute();
+            }
+        });
+        builder.setNegativeButton("بیخیال", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                if (Prefs.getLUANCH(getApplicationContext()) == 0) {
+                    finish();
+                }
+            }
+        });
+        builder.show();
     }
 
     @Override

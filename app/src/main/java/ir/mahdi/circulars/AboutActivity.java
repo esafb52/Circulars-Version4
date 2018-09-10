@@ -1,6 +1,7 @@
 package ir.mahdi.circulars;
 
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
@@ -11,13 +12,10 @@ import android.os.Bundle;
 import android.preference.Preference;
 import android.preference.PreferenceFragment;
 import android.support.design.widget.Snackbar;
+import android.support.v7.app.AlertDialog;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
-
-import com.afollestad.materialdialogs.GravityEnum;
-import com.afollestad.materialdialogs.MaterialDialog;
-
 import java.util.Locale;
 
 import io.github.inflationx.viewpump.ViewPumpContextWrapper;
@@ -25,8 +23,6 @@ import ir.mahdi.circulars.helper.AppCompatPreferenceActivity;
 import ir.mahdi.circulars.helper.Prefs;
 
 public class AboutActivity extends AppCompatPreferenceActivity {
-    private static final String TAG = AboutActivity.class.getSimpleName();
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -129,50 +125,28 @@ public class AboutActivity extends AppCompatPreferenceActivity {
             });
         }
         private void chooseServer() {
-            new MaterialDialog.Builder(getActivity())
-                    .title(getString(R.string.select_region))
-                    .titleGravity(GravityEnum.END)
-                    .itemsGravity(GravityEnum.END)
-                    .btnStackedGravity(GravityEnum.END)
-                    .buttonsGravity(GravityEnum.END)
-                    .contentGravity(GravityEnum.END)
-                    .items(R.array.server)
-                    .itemsCallbackSingleChoice(Prefs.getSERVER(getActivity()), new MaterialDialog.ListCallbackSingleChoice() {
-                        @Override
-                        public boolean onSelection(MaterialDialog dialog, View itemView, int which, CharSequence text) {
-                            Prefs.setSERVER(getActivity(), which);
-                            Prefs.setLUANCH(getActivity(), 1);
-                            return false;
-                        }
-                    })
-                    .dividerColorRes(R.color.colorPrimary)
-                    .positiveColorRes(R.color.colorPrimary)
-                    .neutralColorRes(R.color.colorPrimary)
-                    .negativeColorRes(R.color.colorPrimary)
-                    .widgetColorRes(R.color.colorPrimary)
-                    .buttonRippleColorRes(R.color.colorPrimary)
-                    .positiveText(getString(R.string.save))
-                    .negativeText(getString(R.string.cancel))
-                    .cancelable(false)
-                    .show();
+            AlertDialog.Builder builder = new AlertDialog.Builder(getActivity(), R.style.AlertDialogCustom);
+            builder.setTitle(getString(R.string.select_region));
+            builder.setCancelable(false);
 
+            builder.setSingleChoiceItems(R.array.server, Prefs.getSERVER(getActivity()), new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialogInterface, int i) {
+                    Prefs.setSERVER(getActivity(), i);
+                    Prefs.setLUANCH(getActivity(), 1);
+                }
+            });
+            builder.setPositiveButton("ذخیره سرور", null);
+            builder.setNegativeButton("بیخیال", null);
+            builder.show();
         }
         private void changelog() {
-            new MaterialDialog.Builder(getActivity())
-                    .titleGravity(GravityEnum.END)
-                    .itemsGravity(GravityEnum.END)
-                    .contentGravity(GravityEnum.END)
-                    .title(R.string.changeLogTitle)
-                    .items(R.array.changeLog)
-                    .cancelable(false)
-                    .dividerColorRes(R.color.colorPrimary)
-                    .positiveColorRes(R.color.colorPrimary)
-                    .neutralColorRes(R.color.colorPrimary)
-                    .negativeColorRes(R.color.colorPrimary)
-                    .widgetColorRes(R.color.colorPrimary)
-                    .buttonRippleColorRes(R.color.colorPrimary)
-                    .positiveText(getString(R.string.close))
-                    .show();
+            AlertDialog.Builder builder = new AlertDialog.Builder(getActivity(), R.style.AlertDialogCustom);
+            builder.setTitle(getString(R.string.changeLogTitle));
+            builder.setItems(R.array.changeLog,null);
+            builder.setPositiveButton("حله", null);
+            builder.setCancelable(false);
+            builder.show();
         }
         private void snackbarShow(String message) {
             Snackbar snackbar = Snackbar.make(getView(), message, 0);
