@@ -1,24 +1,15 @@
 apply plugin: 'com.android.application'
 
 android {
-    signingConfigs {
-        release {
-            keyAlias ''
-            keyPassword ''
-            storeFile file('E:/Programming/01')
-            storePassword ''
-        }
-    }
     compileSdkVersion 27
     defaultConfig {
         applicationId "ir.mahdi.circulars"
         minSdkVersion 17
         targetSdkVersion 27
-        versionCode 970619
-        versionName "4.3"
+        versionCode 970625
+        versionName "4.4"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
-        signingConfig signingConfigs.release
     }
     buildTypes {
         release {
