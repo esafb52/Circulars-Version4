@@ -16,13 +16,14 @@ import android.support.v7.app.AlertDialog;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
+
 import java.util.Locale;
 
 import io.github.inflationx.viewpump.ViewPumpContextWrapper;
-import ir.mahdi.circulars.helper.AppCompatPreferenceActivity;
 import ir.mahdi.circulars.helper.Prefs;
 
-public class AboutActivity extends AppCompatPreferenceActivity {
+public class SettingsActivity extends AppCompatPreferenceActivity {
+    private static final String TAG = SettingsActivity.class.getSimpleName();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -96,7 +97,7 @@ public class AboutActivity extends AppCompatPreferenceActivity {
             myPrefRegion.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
                 public boolean onPreferenceClick(Preference preference) {
                     try {
-                       chooseServer();
+                        chooseServer();
                     } catch (Exception e) {
                     }
                     return true;

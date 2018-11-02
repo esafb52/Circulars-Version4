@@ -7,7 +7,7 @@
         android:title="@string/title_shop" />
 
     <item
-        android:id="@+id/navigation_offline"
+        android:id="@+id/navigation_local"
         android:icon="@drawable/ic_card_giftcard_white_24dp"
         android:title="@string/title_gifts" />
 

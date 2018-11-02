@@ -1,8 +1,7 @@
-package ir.mahdi.circulars;
+package ir.mahdi.circulars.fragment;
 
-import android.content.Context;
+
 import android.content.DialogInterface;
-import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.TypedArray;
 import android.graphics.Color;
@@ -10,14 +9,12 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
-import android.support.annotation.NonNull;
-import android.support.design.widget.BottomNavigationView;
-import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v4.widget.SwipeRefreshLayout;
-import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.view.ActionMode;
@@ -25,20 +22,26 @@ import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SearchView;
+import android.view.LayoutInflater;
 import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.webkit.URLUtil;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
-import com.afollestad.materialdialogs.folderselector.FileChooserDialog;
 import com.downloader.Error;
 import com.downloader.OnDownloadListener;
 import com.downloader.OnProgressListener;
 import com.downloader.PRDownloader;
 import com.downloader.Progress;
 import com.facebook.shimmer.ShimmerFrameLayout;
+import com.github.angads25.filepicker.controller.DialogSelectionListener;
+import com.github.angads25.filepicker.model.DialogConfigs;
+import com.github.angads25.filepicker.model.DialogProperties;
+import com.github.angads25.filepicker.view.FilePickerDialog;
 import com.microsoft.appcenter.AppCenter;
 import com.microsoft.appcenter.analytics.Analytics;
 import com.microsoft.appcenter.crashes.Crashes;
@@ -62,20 +65,19 @@ import java.util.Comparator;
 import java.util.List;
 
 import co.ronash.pushe.Pushe;
-import io.github.inflationx.viewpump.ViewPumpContextWrapper;
+import ir.mahdi.circulars.MainActivity;
+import ir.mahdi.circulars.R;
 import ir.mahdi.circulars.adapter.MessagesAdapter;
 import ir.mahdi.circulars.archive.Rar.Archive;
 import ir.mahdi.circulars.archive.Rar.exception.RarException;
 import ir.mahdi.circulars.archive.Rar.rarfile.FileHeader;
 import ir.mahdi.circulars.archive.Zip.Decompress;
-import ir.mahdi.circulars.helper.BottomNavigationViewHelper;
 import ir.mahdi.circulars.helper.DividerItemDecoration;
 import ir.mahdi.circulars.helper.Prefs;
 import ir.mahdi.circulars.model.Message;
 
-
-public class CircularActivity extends AppCompatActivity implements SwipeRefreshLayout.OnRefreshListener,
-        MessagesAdapter.MessageAdapterListener, SearchView.OnQueryTextListener, FileChooserDialog.FileCallback {
+public class CircularFragment extends Fragment implements SwipeRefreshLayout.OnRefreshListener,
+        MessagesAdapter.MessageAdapterListener, SearchView.OnQueryTextListener {
 
     Message message;
     String _Path = "/sdcard/بخشنامه/";
@@ -86,21 +88,97 @@ public class CircularActivity extends AppCompatActivity implements SwipeRefreshL
     private RecyclerView recyclerView;
     private MessagesAdapter mAdapter;
     private SwipeRefreshLayout swipeRefreshLayout;
-    private ActionModeCallback actionModeCallback;
     private ActionMode actionMode;
-    private ActionBar toolbar;
-    ProgressBar progressBar;
-    public boolean isClickable = true;
 
+    public boolean isClickable = true;
+    ProgressBar progressBar;
     String fileext;
     String mylFileName;
-
+    private ActionModeCallback actionModeCallback;
     String ArchivePath;
     String ArchiveFolderName;
     RecyclerView.LayoutManager mLayoutManager;
     ShimmerFrameLayout shimmerContainer;
     TextView txtNonItem;
+    public CircularFragment() {
+        // Required empty public constructor
+    }
 
+    public static CircularFragment newInstance(String param1, String param2) {
+        CircularFragment fragment = new CircularFragment();
+        Bundle args = new Bundle();
+        fragment.setArguments(args);
+        return fragment;
+    }
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+
+        super.onCreate(savedInstanceState);
+        setHasOptionsMenu(true);
+    }
+
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
+        // Inflate the layout for this fragment
+        View view = inflater.inflate(R.layout.fragment_circular, container, false);
+
+        AppCenter.start(getActivity().getApplication(), "442e4224-ce5c-42ce-a183-08b03eb28414",
+                Analytics.class, Crashes.class);
+        Pushe.initialize(getContext(), true);
+
+        isStoragePermissionGranted();
+        createDirIfNotExists("بخشنامه");
+
+        getToolbarTitle();
+
+        txtNonItem = view.findViewById(R.id.txtNonItem);
+        progressBar = view.findViewById(R.id.progressBar);
+        recyclerView = view.findViewById(R.id.recycler_view);
+
+        shimmerContainer = (ShimmerFrameLayout) view.findViewById(R.id.shimmer_view_container);
+
+        swipeRefreshLayout = view.findViewById(R.id.swipe_refresh_layout);
+        swipeRefreshLayout.setOnRefreshListener(this);
+        swipeRefreshLayout.setColorSchemeColors(getRandomMaterialColor("400"));
+
+
+        mLayoutManager = new LinearLayoutManager(getContext());
+        recyclerView.setLayoutManager(mLayoutManager);
+        recyclerView.setItemAnimator(new DefaultItemAnimator());
+        messages = new ArrayList<>();
+        mAdapter = new MessagesAdapter(getContext(), messages, this);
+        recyclerView.addItemDecoration(new DividerItemDecoration(getContext(), LinearLayoutManager.VERTICAL, 16));
+
+
+        recyclerView.setAdapter(mAdapter);
+        if (Prefs.getLUANCH(getContext()) == 0) {
+            chooseServer();
+        } else {
+            showShimmerEffect(true);
+            new JsoupListView().execute();
+        }
+
+        actionModeCallback = new ActionModeCallback();
+        swipeRefreshLayout.post(
+                new Runnable() {
+                    @Override
+                    public void run() {
+                        new JsoupListView().execute();
+                    }
+                }
+        );
+        return view;
+    }
+    private void getToolbarTitle() {
+        int title_Position = Prefs.getSERVER(getContext());
+        String[] title_Name = getResources().getStringArray(R.array.server);
+        ((MainActivity) getActivity())
+                .setToolbarTitle(title_Name[title_Position]);
+    }
+
+    //region Create Dir and Extract Archive
     public static boolean createDirIfNotExists(String path) {
         boolean ret = true;
 
@@ -112,103 +190,6 @@ public class CircularActivity extends AppCompatActivity implements SwipeRefreshL
         }
         return ret;
     }
-
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_circular);
-        toolbar = getSupportActionBar();
-
-        AppCenter.start(getApplication(), "442e4224-ce5c-42ce-a183-08b03eb28414",
-                Analytics.class, Crashes.class);
-        Pushe.initialize(this, true);
-        createDirIfNotExists("بخشنامه");
-
-        getToolbarTitle();
-
-        txtNonItem = findViewById(R.id.txtNonItem);
-
-        recyclerView = findViewById(R.id.recycler_view);
-
-        shimmerContainer = (ShimmerFrameLayout) findViewById(R.id.shimmer_view_container);
-
-        swipeRefreshLayout = findViewById(R.id.swipe_refresh_layout);
-        swipeRefreshLayout.setOnRefreshListener(this);
-        swipeRefreshLayout.setColorSchemeColors(getRandomMaterialColor("400"));
-        try {
-            progressBar = findViewById(R.id.progressBar);
-        }
-        catch (ClassCastException e) {
-        }
-
-
-
-        mLayoutManager = new LinearLayoutManager(getApplicationContext());
-        recyclerView.setLayoutManager(mLayoutManager);
-        recyclerView.setItemAnimator(new DefaultItemAnimator());
-        messages = new ArrayList<>();
-        mAdapter = new MessagesAdapter(this, messages, this);
-        recyclerView.addItemDecoration(new DividerItemDecoration(this, LinearLayoutManager.VERTICAL, 16));
-
-
-        recyclerView.setAdapter(mAdapter);
-        if (Prefs.getLUANCH(getApplicationContext()) == 0) {
-            chooseServer();
-        } else {
-            showShimmerEffect(true);
-            new JsoupListView().execute();
-        }
-        actionModeCallback = new ActionModeCallback();
-        swipeRefreshLayout.post(
-                new Runnable() {
-                    @Override
-                    public void run() {
-                        new JsoupListView().execute();
-                    }
-                }
-        );
-        isStoragePermissionGranted();
-
-        BottomNavigationView bottomNavigationView = findViewById(R.id.bottomNavView_Bar);
-        BottomNavigationViewHelper.disableShiftMode(bottomNavigationView);
-        CoordinatorLayout.LayoutParams layoutParams = (CoordinatorLayout.LayoutParams) bottomNavigationView.getLayoutParams();
-        layoutParams.setBehavior(new BottomNavigationViewHelper());
-
-        Menu menu = bottomNavigationView.getMenu();
-        MenuItem menuItem = menu.getItem(2);
-        menuItem.setChecked(true);
-        bottomNavigationView.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
-            @Override
-            public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-                switch (item.getItemId()) {
-
-                    case R.id.navigation_circular:
-                        Intent intent1 = new Intent(CircularActivity.this, CircularActivity.class);
-                        startActivity(intent1);
-                        break;
-
-                    case R.id.navigation_offline:
-                        Intent intent2 = new Intent(CircularActivity.this, OfflineActivity.class);
-                        startActivity(intent2);
-                        break;
-
-                    case R.id.navigation_profile:
-                        startActivity(new Intent(CircularActivity.this, AboutActivity.class));
-                        break;
-
-                }
-
-                return false;
-            }
-        });
-    }
-
-    private void getToolbarTitle() {
-        int title_Position = Prefs.getSERVER(getApplicationContext());
-        String[] title_Name = getResources().getStringArray(R.array.server);
-        toolbar.setTitle(title_Name[title_Position]);
-    }
-
     public static void extractArchive(String archive, String destination) {
         if (archive == null || destination == null) {
             throw new RuntimeException("archive and destination must me set");
@@ -225,7 +206,6 @@ public class CircularActivity extends AppCompatActivity implements SwipeRefreshL
         }
         extractArchive(arch, dest);
     }
-
     public static void extractArchive(File archive, File destination) {
         Archive arch = null;
         try {
@@ -267,7 +247,6 @@ public class CircularActivity extends AppCompatActivity implements SwipeRefreshL
             }
         }
     }
-
     private static File createFile(FileHeader fh, File destination) {
         File f = null;
         String name = null;
@@ -286,7 +265,6 @@ public class CircularActivity extends AppCompatActivity implements SwipeRefreshL
         }
         return f;
     }
-
     private static File makeFile(File destination, String name)
             throws IOException {
         String[] dirs = name.split("\\\\");
@@ -310,7 +288,6 @@ public class CircularActivity extends AppCompatActivity implements SwipeRefreshL
             return null;
         }
     }
-
     private static void createDirectory(FileHeader fh, File destination) {
         File f = null;
         if (fh.isDirectory() && fh.isUnicode()) {
@@ -325,7 +302,6 @@ public class CircularActivity extends AppCompatActivity implements SwipeRefreshL
             }
         }
     }
-
     private static void makeDirectory(File destination, String fileName) {
         String[] dirs = fileName.split("\\\\");
         if (dirs == null) {
@@ -338,6 +314,7 @@ public class CircularActivity extends AppCompatActivity implements SwipeRefreshL
         }
 
     }
+    //endregion
 
     private void showShimmerEffect(boolean isTrue){
         shimmerContainer.setAngle(ShimmerFrameLayout.MaskAngle.CW_180);
@@ -351,10 +328,14 @@ public class CircularActivity extends AppCompatActivity implements SwipeRefreshL
             shimmerContainer.stopShimmerAnimation();
         }
     }
-    //-1 short
-    //0 long
+
+    /**
+     * @param message
+     * @param length Long = 0, Short = 1
+     */
+
     private void snackbarShow(String message, int length) {
-        Snackbar snackbar = Snackbar.make(getWindow().getDecorView(), message, length);
+        Snackbar snackbar = Snackbar.make(getActivity().getWindow().getDecorView(), message, length);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
             TextView view1 = snackbar.getView().findViewById(android.support.design.R.id.snackbar_text);
@@ -363,14 +344,31 @@ public class CircularActivity extends AppCompatActivity implements SwipeRefreshL
         snackbar.setAction("تایید", null);
         snackbar.show();
     }
-
     private void chooseFile() {
-        new FileChooserDialog.Builder(this)
-                .initialPath(_Path)  // changes initial path, defaults to external storage directory
-                .mimeType("application/*") // Optional MIME type filter
-                .extensionsFilter(".pdf", ".jpg", ".png") // Optional extension filter, will override mimeType()
-                .goUpLabel("قبلی") // custom go up label, default label is "..."
-                .show(this);
+
+        DialogProperties properties = new DialogProperties();
+        properties.selection_mode = DialogConfigs.SINGLE_MODE;
+        properties.selection_type = DialogConfigs.FILE_SELECT;
+        properties.root = new File(_Path);
+        properties.error_dir = new File(DialogConfigs.DEFAULT_DIR);
+        properties.offset = new File(DialogConfigs.DEFAULT_DIR);
+        String[] extens = new String[]{".pdf", ".jpg", ".png"};
+        properties.extensions = extens;
+        FilePickerDialog dialog = new FilePickerDialog(getContext(),properties);
+        dialog.setTitle("انتخاب بخشنامه");
+        dialog.setNegativeBtnName("انصراف");
+        dialog.setPositiveBtnName("انتخاب");
+        dialog.setDialogSelectionListener(new DialogSelectionListener() {
+            @Override
+            public void onSelectedFilePaths(String[] files) {
+                if (files[0].contains(".pdf")) {
+                    loadFragment(true,"FILE_NAME", files[0]);
+                } else {
+                    loadFragment(false,"FILE_NAME", files[0]);
+                }
+            }
+        });
+        dialog.show();
     }
 
     public void clear() {
@@ -404,53 +402,39 @@ public class CircularActivity extends AppCompatActivity implements SwipeRefreshL
         fileOrDirectory.delete();
     }
     private void chooseServer() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this, R.style.AlertDialogCustom);
+        AlertDialog.Builder builder = new AlertDialog.Builder(getContext(), R.style.AlertDialogCustom);
         builder.setTitle(getString(R.string.select_region));
         builder.setCancelable(false);
 
-        builder.setSingleChoiceItems(R.array.server, Prefs.getSERVER(getApplicationContext()), new DialogInterface.OnClickListener() {
+        builder.setSingleChoiceItems(R.array.server, Prefs.getSERVER(getContext()), new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
                 clear();
-                Prefs.setSERVER(getApplicationContext(), i);
+                Prefs.setSERVER(getContext(), i);
                 getToolbarTitle();
-                showShimmerEffect(true);
-                Prefs.setLUANCH(getApplicationContext(), 1);
             }
         });
         builder.setPositiveButton("ذخیره سرور", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
+                showShimmerEffect(true);
+                Prefs.setLUANCH(getContext(), 1);
                 new JsoupListView().execute();
             }
         });
         builder.setNegativeButton("بیخیال", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
-                if (Prefs.getLUANCH(getApplicationContext()) == 0) {
-                    finish();
+                if (Prefs.getLUANCH(getContext()) == 0) {
+                   getActivity().finish();
                 }
             }
         });
         builder.show();
     }
-
-    @Override
-    public void onFileSelection(@NonNull FileChooserDialog dialog, @NonNull File file) {
-        if (file.getName().contains(".pdf")) {
-            startActivity(new Intent(CircularActivity.this, PdfViewerActivity.class).putExtra("FILE_NAME", file.getPath()));
-        } else {
-            startActivity(new Intent(CircularActivity.this, ImageViewerActivity.class).putExtra("FILE_NAME", file.getPath()));
-        }
-    }
-
-    @Override
-    public void onFileChooserDismissed(@NonNull FileChooserDialog dialog) {
-
-    }
     private int getRandomMaterialColor(String typeColor) {
         int returnColor = Color.GRAY;
-        int arrayId = getResources().getIdentifier("mdcolor_" + typeColor, "array", getPackageName());
+        int arrayId = getResources().getIdentifier("mdcolor_" + typeColor, "array", getActivity().getPackageName());
 
         if (arrayId != 0) {
             TypedArray colors = getResources().obtainTypedArray(arrayId);
@@ -460,71 +444,18 @@ public class CircularActivity extends AppCompatActivity implements SwipeRefreshL
         }
         return returnColor;
     }
-
     public boolean isStoragePermissionGranted() {
         if (Build.VERSION.SDK_INT >= 23) {
-            if (checkSelfPermission(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
+            if (getActivity().checkSelfPermission(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
                     == PackageManager.PERMISSION_GRANTED) {
                 return true;
             } else {
-                ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.WRITE_EXTERNAL_STORAGE}, 1);
+                ActivityCompat.requestPermissions(getActivity(), new String[]{android.Manifest.permission.WRITE_EXTERNAL_STORAGE}, 1);
                 return false;
             }
         } else { //permission is automatically granted on sdk<23 upon installation
             return true;
         }
-    }
-
-    @Override
-    public void onRefresh() {
-        clear();
-        messages.clear();
-        getToolbarTitle();
-        showShimmerEffect(true);
-        new JsoupListView().execute();
-    }
-
-    @Override
-    protected void attachBaseContext(Context newBase) {
-        super.attachBaseContext(ViewPumpContextWrapper.wrap(newBase));
-    }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.menu_main, menu);
-        final MenuItem item = menu.findItem(R.id.action_search);
-        final SearchView searchView = (SearchView) MenuItemCompat.getActionView(item);
-        searchView.setQueryHint(getString(R.string.search_hint));
-        searchView.setOnQueryTextListener(this);
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
-            searchView.setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
-            searchView.setTextDirection(View.TEXT_DIRECTION_RTL);
-        }
-        searchView.addOnAttachStateChangeListener(new View.OnAttachStateChangeListener() {
-            @Override
-            public void onViewAttachedToWindow(View v) {
-                isSearchActive = true;
-            }
-
-            @Override
-            public void onViewDetachedFromWindow(View v) {
-                isSearchActive = false;
-            }
-        });
-        return true;
-    }
-
-    @Override
-    public boolean onQueryTextChange(String query) {
-        filteredModelList = filter(messages, query);
-        mAdapter.setFilter(filteredModelList);
-        return true;
-    }
-
-    @Override
-    public boolean onQueryTextSubmit(String query) {
-        return false;
     }
 
     private List<Message> filter(List<Message> models, String query) {
@@ -539,13 +470,32 @@ public class CircularActivity extends AppCompatActivity implements SwipeRefreshL
         }
         return filteredModelList;
     }
+    @Override
+    public void onRefresh() {
+        clear();
+        messages.clear();
+        getToolbarTitle();
+        showShimmerEffect(true);
+        new JsoupListView().execute();
+    }
+
+    @Override
+    public boolean onQueryTextChange(String query) {
+        filteredModelList = filter(messages, query);
+        mAdapter.setFilter(filteredModelList);
+        return true;
+    }
+
+    @Override
+    public boolean onQueryTextSubmit(String query) {
+        return false;
+    }
 
     @Override
     public void onIconClicked(int position) {
         if (actionMode == null) {
-            actionMode = startSupportActionMode(actionModeCallback);
+            actionMode = ((AppCompatActivity)getActivity()).startSupportActionMode(actionModeCallback);
         }
-
         toggleSelection(position);
     }
 
@@ -566,11 +516,10 @@ public class CircularActivity extends AppCompatActivity implements SwipeRefreshL
 
     @Override
     public void onMessageRowClicked(int position) {
-
         if (mAdapter.getSelectedItemCount() > 0) {
             enableActionMode(position);
-
-        } else {
+        }
+        else {
             if (isSearchActive) {
                 message = filteredModelList.get(position);
                 message.setRead(true);
@@ -580,9 +529,8 @@ public class CircularActivity extends AppCompatActivity implements SwipeRefreshL
                 FixFileName = FixFileName.replaceAll("/", "");
                 File checkExist = new File(_Path + FixFileName + ".pdf");
                 File checkExistZip = new File(_Path + FixFileName);
-
                 if (checkExist.exists()) {
-                    startActivity(new Intent(this, PdfViewerActivity.class).putExtra("FILE_NAME", _Path + FixFileName + ".pdf"));
+                    loadFragment(true, "FILE_NAME", _Path + FixFileName + ".pdf");
                 } else {
                     if (checkExistZip.exists()) {
                         chooseFile();
@@ -599,9 +547,8 @@ public class CircularActivity extends AppCompatActivity implements SwipeRefreshL
                 FixFileName = FixFileName.replaceAll("/", "");
                 File checkExist = new File(_Path + FixFileName + ".pdf");
                 File checkExistZip = new File(_Path + FixFileName);
-
                 if (checkExist.exists()) {
-                    startActivity(new Intent(this, PdfViewerActivity.class).putExtra("FILE_NAME", _Path + FixFileName + ".pdf"));
+                    loadFragment(true, "FILE_NAME", _Path + FixFileName + ".pdf");
                 } else {
                     if (checkExistZip.exists()) {
                         chooseFile();
@@ -612,25 +559,19 @@ public class CircularActivity extends AppCompatActivity implements SwipeRefreshL
             }
         }
     }
-
     private String getBaseUrl() {
         String[] get_BaseUrl = getResources().getStringArray(R.array.url);
-        return get_BaseUrl[Prefs.getSERVER(getApplicationContext())];
+        return get_BaseUrl[Prefs.getSERVER(getContext())];
     }
-
     private void downloader(final String filename, final String path){
+
 
         if (isClickable) {
             isClickable = false;
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 isStoragePermissionGranted();
             }
-          try {
-              progressBar.setProgress(0);
-            }
-            catch (ClassCastException e) {
-
-            }
+            progressBar.setProgress(0);
 
             new GetFileInfo(new GetFileInfo.GetFileInfoListener() {
                 @Override
@@ -658,22 +599,14 @@ public class CircularActivity extends AppCompatActivity implements SwipeRefreshL
                                 @Override
                                 public void onProgress(Progress progress) {
                                     long progressPercent = progress.currentBytes * 100 / progress.totalBytes;
-                                    try {
-                                        progressBar.setProgress((int) progressPercent);
-                                    }
-                                    catch (ClassCastException e) {
-                                    }
+                                    progressBar.setProgress((int) progressPercent);
 
                                 }
                             })
                             .start(new OnDownloadListener() {
                                 @Override
                                 public void onDownloadComplete() {
-                                    try {
-                                        progressBar.setProgress(0);
-                                    }
-                                    catch (ClassCastException e) {
-                                    }
+                                    progressBar.setProgress(0);
 
                                     isClickable = true;
 
@@ -689,18 +622,13 @@ public class CircularActivity extends AppCompatActivity implements SwipeRefreshL
                                         file.delete();
                                         chooseFile();
                                     } else {
-                                        startActivity(new Intent(CircularActivity.this, PdfViewerActivity.class).putExtra("FILE_NAME", _Path + fileFullName));
+                                        loadFragment(true, "FILE_NAME", _Path + fileFullName);
                                     }
                                 }
-
                                 @Override
                                 public void onError(Error error) {
                                     snackbarShow("دانلود با خطا مواجه شد", -1);
-                                    try {
-                                        progressBar.setProgress(0);
-                                    }
-                                    catch (ClassCastException e) {
-                                    }
+                                    progressBar.setProgress(0);
                                     isClickable = true;
                                 }
                             });
@@ -712,15 +640,12 @@ public class CircularActivity extends AppCompatActivity implements SwipeRefreshL
     public void onRowLongClicked(int position) {
         enableActionMode(position);
     }
-
-
     private void enableActionMode(int position) {
         if (actionMode == null) {
-            actionMode = startSupportActionMode(actionModeCallback);
+            actionMode = ((AppCompatActivity)getActivity()).startSupportActionMode(actionModeCallback);
         }
         toggleSelection(position);
     }
-
     private void toggleSelection(int position) {
         mAdapter.toggleSelection(position);
         int count = mAdapter.getSelectedItemCount();
@@ -732,7 +657,6 @@ public class CircularActivity extends AppCompatActivity implements SwipeRefreshL
             actionMode.invalidate();
         }
     }
-
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
@@ -742,7 +666,6 @@ public class CircularActivity extends AppCompatActivity implements SwipeRefreshL
         }
         return super.onOptionsItemSelected(item);
     }
-
     static class GetFileInfo extends AsyncTask<String, Integer, String> {
         private final GetFileInfoListener mListener;
 
@@ -831,7 +754,6 @@ public class CircularActivity extends AppCompatActivity implements SwipeRefreshL
             });
         }
     }
-
     class JsoupListView extends AsyncTask<Void, String, ArrayList<Message>> {
 
         String url;
@@ -840,7 +762,7 @@ public class CircularActivity extends AppCompatActivity implements SwipeRefreshL
         @Override
         protected ArrayList<Message> doInBackground(Void... params) {
             arrURL = getResources().getStringArray(R.array.url);
-            url = arrURL[Prefs.getSERVER(getApplicationContext())];
+            url = arrURL[Prefs.getSERVER(getContext())];
             try {
                 Document doc = Jsoup.connect(url).maxBodySize(0).get();
                 ArrayList<Message> cl = new ArrayList<>();
@@ -905,7 +827,7 @@ public class CircularActivity extends AppCompatActivity implements SwipeRefreshL
                 if (messages.isEmpty())
                     txtNonItem.setVisibility(View.VISIBLE);
                 else
-                    txtNonItem.setVisibility(View.INVISIBLE);
+                    txtNonItem.setVisibility(View.GONE);
 
                 mAdapter.notifyDataSetChanged();
                 showShimmerEffect(false);
@@ -914,5 +836,49 @@ public class CircularActivity extends AppCompatActivity implements SwipeRefreshL
 
             }
         }
+    }
+    private void loadFragment(Boolean isPdf, String KEY, String Data) {
+        // load fragment
+        FragmentTransaction transaction = getActivity().getSupportFragmentManager().beginTransaction();
+        Fragment fragment;
+        Bundle bundle = new Bundle();
+
+        if(isPdf){
+            fragment = new PdfFragment();
+            bundle.putString(KEY, Data);
+            fragment.setArguments(bundle);
+
+        } else {
+            fragment = new ImageFragment();
+            bundle.putString(KEY, Data);
+            fragment.setArguments(bundle);
+        }
+        transaction.replace(R.id.frame_container, fragment);
+        transaction.addToBackStack(null);
+        transaction.commit();
+    }
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        inflater.inflate(R.menu.menu_main, menu);
+        super.onCreateOptionsMenu(menu,inflater);
+        final MenuItem item = menu.findItem(R.id.action_search);
+        final SearchView searchView = (SearchView) MenuItemCompat.getActionView(item);
+        searchView.setQueryHint(getString(R.string.search_hint));
+        searchView.setOnQueryTextListener(this);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+            searchView.setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
+            searchView.setTextDirection(View.TEXT_DIRECTION_RTL);
+        }
+        searchView.addOnAttachStateChangeListener(new View.OnAttachStateChangeListener() {
+            @Override
+            public void onViewAttachedToWindow(View v) {
+                isSearchActive = true;
+            }
+
+            @Override
+            public void onViewDetachedFromWindow(View v) {
+                isSearchActive = false;
+            }
+        });
     }
 }

@@ -149,14 +149,16 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.MyView
     }
 
     private void applyReadStatus(MyViewHolder holder, Message message) {
+        Typeface tf1 = Typeface.createFromAsset(mContext.getAssets(), "fonts/IRANSansMobile.ttf");
+
         if (message.isRead()) {
-            holder.from.setTypeface(null, Typeface.NORMAL);
-            holder.subject.setTypeface(null, Typeface.NORMAL);
+            holder.from.setTypeface(tf1,Typeface.NORMAL);
+            holder.subject.setTypeface(tf1, Typeface.NORMAL);
             holder.from.setTextColor(ContextCompat.getColor(mContext, R.color.subject));
             holder.subject.setTextColor(ContextCompat.getColor(mContext, R.color.message));
         } else {
-            holder.from.setTypeface(null, Typeface.BOLD);
-            holder.subject.setTypeface(null, Typeface.BOLD);
+            holder.from.setTypeface(tf1, Typeface.BOLD);
+            holder.subject.setTypeface(tf1, Typeface.BOLD);
             holder.from.setTextColor(ContextCompat.getColor(mContext, R.color.from));
             holder.subject.setTextColor(ContextCompat.getColor(mContext, R.color.subject));
         }
