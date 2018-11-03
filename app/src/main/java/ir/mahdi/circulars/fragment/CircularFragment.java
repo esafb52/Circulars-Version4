@@ -480,8 +480,8 @@ public class CircularFragment extends Fragment implements SwipeRefreshLayout.OnR
     }
 
     @Override
-    public boolean onQueryTextChange(String query) {
-        filteredModelList = filter(messages, query);
+    public boolean onQueryTextChange(String newText) {
+        filteredModelList = filter(messages, newText);
         mAdapter.setFilter(filteredModelList);
         return true;
     }
@@ -784,14 +784,9 @@ public class CircularFragment extends Fragment implements SwipeRefreshLayout.OnR
                         FixFileName = FixFileName.replaceAll("/", "");
                         File existCirculars = new File(_Path + FixFileName);
                         File existCircularsPdf = new File(_Path + FixFileName + ".pdf");
-                        if (existCirculars.exists()) {
+                        if (existCirculars.exists() || existCircularsPdf.exists()) {
                             item.setMessage(getString(R.string.downloaded_Message));
                             item.setRead(true);
-                        } else {
-                            if (existCircularsPdf.exists()) {
-                                item.setMessage(getString(R.string.downloaded_Message));
-                                item.setRead(true);
-                            }
                         }
                         if (strhref.contains("fileLoader"))
                             cl.add(item);
@@ -815,26 +810,21 @@ public class CircularFragment extends Fragment implements SwipeRefreshLayout.OnR
         @Override
         protected void onPostExecute(ArrayList<Message> ts) {
             super.onPostExecute(ts);
-
+            showShimmerEffect(false);
             swipeRefreshLayout.setColorSchemeColors(getRandomMaterialColor("400"));
             messages.clear();
 
-            try {
-                for (Message message : ts) {
-                    message.setColor(getRandomMaterialColor("400"));
-                    messages.add(message);
-                }
-                if (messages.isEmpty())
-                    txtNonItem.setVisibility(View.VISIBLE);
-                else
-                    txtNonItem.setVisibility(View.GONE);
-
-                mAdapter.notifyDataSetChanged();
-                showShimmerEffect(false);
-
-            } catch (Exception e) {
-
+            for (Message message : ts) {
+                message.setColor(getRandomMaterialColor("400"));
+                messages.add(message);
             }
+            if (messages.isEmpty())
+                txtNonItem.setVisibility(View.VISIBLE);
+            else
+                txtNonItem.setVisibility(View.GONE);
+
+            mAdapter.notifyDataSetChanged();
+            onQueryTextChange("");
         }
     }
     private void loadFragment(Boolean isPdf, String KEY, String Data) {
@@ -857,6 +847,7 @@ public class CircularFragment extends Fragment implements SwipeRefreshLayout.OnR
         transaction.addToBackStack(null);
         transaction.commit();
     }
+
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         inflater.inflate(R.menu.menu_main, menu);
