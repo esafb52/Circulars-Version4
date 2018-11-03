@@ -810,21 +810,25 @@ public class CircularFragment extends Fragment implements SwipeRefreshLayout.OnR
         @Override
         protected void onPostExecute(ArrayList<Message> ts) {
             super.onPostExecute(ts);
-            showShimmerEffect(false);
-            swipeRefreshLayout.setColorSchemeColors(getRandomMaterialColor("400"));
-            messages.clear();
+            try{
+                showShimmerEffect(false);
+                swipeRefreshLayout.setColorSchemeColors(getRandomMaterialColor("400"));
+                messages.clear();
 
-            for (Message message : ts) {
-                message.setColor(getRandomMaterialColor("400"));
-                messages.add(message);
+                for (Message message : ts) {
+                    message.setColor(getRandomMaterialColor("400"));
+                    messages.add(message);
+                }
+                if (messages.isEmpty())
+                    txtNonItem.setVisibility(View.VISIBLE);
+                else
+                    txtNonItem.setVisibility(View.GONE);
+
+                mAdapter.notifyDataSetChanged();
+                onQueryTextChange("");
+            }catch(Exception ex){
+
             }
-            if (messages.isEmpty())
-                txtNonItem.setVisibility(View.VISIBLE);
-            else
-                txtNonItem.setVisibility(View.GONE);
-
-            mAdapter.notifyDataSetChanged();
-            onQueryTextChange("");
         }
     }
     private void loadFragment(Boolean isPdf, String KEY, String Data) {

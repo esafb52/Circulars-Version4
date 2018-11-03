@@ -36,8 +36,8 @@ dependencies {
     implementation 'io.github.inflationx:viewpump:1.0.0'
     implementation 'org.jsoup:jsoup:1.11.3'
     implementation files('libs/zip4j_1.3.2.jar')
-    implementation 'co.ronash.android:pushe-base:1.4.0'
-    def appCenterSdkVersion = '1.8.0'
+    implementation 'co.ronash.android:pushe-base:1.4.1'
+    def appCenterSdkVersion = '1.9.0'
     implementation "com.microsoft.appcenter:appcenter-analytics:${appCenterSdkVersion}"
     implementation "com.microsoft.appcenter:appcenter-crashes:${appCenterSdkVersion}"
     implementation files('libs/commons-io-2.5.jar')
