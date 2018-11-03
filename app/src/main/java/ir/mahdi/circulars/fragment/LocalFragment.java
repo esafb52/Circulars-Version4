@@ -34,14 +34,12 @@ import ir.mahdi.circulars.model.OfflineItem;
 
 public class LocalFragment extends Fragment implements SearchView.OnQueryTextListener {
 
-    private RecyclerView rv;
     String _Path = "/sdcard/بخشنامه/";
     String myTitle;
-
-
     List<OfflineItem> filteredModelList;
-    private List<OfflineItem> persons;
     OfflineAdapter adapter;
+    private RecyclerView rv;
+    private List<OfflineItem> persons;
 
     public LocalFragment() {
         // Required empty public constructor
@@ -90,6 +88,7 @@ public class LocalFragment extends Fragment implements SearchView.OnQueryTextLis
         }));
         return view;
     }
+
     private void chooseFile() {
 
         DialogProperties properties = new DialogProperties();
@@ -100,7 +99,7 @@ public class LocalFragment extends Fragment implements SearchView.OnQueryTextLis
         properties.offset = new File(DialogConfigs.DEFAULT_DIR);
         String[] extens = new String[]{".pdf", ".jpg", ".png"};
         properties.extensions = extens;
-        FilePickerDialog dialog = new FilePickerDialog(getContext(),properties);
+        FilePickerDialog dialog = new FilePickerDialog(getContext(), properties);
         dialog.setTitle("انتخاب بخشنامه");
         dialog.setNegativeBtnName("انصراف");
         dialog.setPositiveBtnName("انتخاب");
@@ -108,41 +107,39 @@ public class LocalFragment extends Fragment implements SearchView.OnQueryTextLis
             @Override
             public void onSelectedFilePaths(String[] files) {
                 if (files[0].contains(".pdf")) {
-                    loadFragment(true,"FILE_NAME", files[0]);
+                    loadFragment(true, "FILE_NAME", files[0]);
                 } else {
-                    loadFragment(false,"FILE_NAME", files[0]);
+                    loadFragment(false, "FILE_NAME", files[0]);
                 }
             }
         });
         dialog.show();
     }
-    private void initializeData(){
+
+    private void initializeData() {
         persons = new ArrayList<>();
 
         File file = new File(Environment.getExternalStorageDirectory() + "/بخشنامه/");
-        if(file.isDirectory() == false)
-        {
+        if (file.isDirectory() == false) {
             return;
         }
         File[] files = file.listFiles();
         int i = 1;
-        for(File f : files)
-        {
-            if(f.isFile() || f.isDirectory())
-            {
-                try
-                {
+        for (File f : files) {
+            if (f.isFile() || f.isDirectory()) {
+                try {
                     persons.add(new OfflineItem(f.getName()));
                     i++;
+                } catch (Exception e) {
                 }
-                catch(Exception e){}
             }
         }
     }
+
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         inflater.inflate(R.menu.menu_main, menu);
-        super.onCreateOptionsMenu(menu,inflater);
+        super.onCreateOptionsMenu(menu, inflater);
         final MenuItem item = menu.findItem(R.id.action_search);
         final MenuItem goneItem = menu.findItem(R.id.action_server);
         goneItem.setVisible(false);
@@ -157,6 +154,7 @@ public class LocalFragment extends Fragment implements SearchView.OnQueryTextLis
         }
 
     }
+
     @Override
     public boolean onQueryTextSubmit(String query) {
         return false;
@@ -168,6 +166,7 @@ public class LocalFragment extends Fragment implements SearchView.OnQueryTextLis
         adapter.setFilter(filteredModelList);
         return true;
     }
+
     private List<OfflineItem> filter(List<OfflineItem> models, String query) {
         query = query.toLowerCase();
 
@@ -180,13 +179,14 @@ public class LocalFragment extends Fragment implements SearchView.OnQueryTextLis
         }
         return filteredModelList;
     }
+
     private void loadFragment(Boolean isPdf, String KEY, String Data) {
         // load fragment
         FragmentTransaction transaction = getActivity().getSupportFragmentManager().beginTransaction();
         Fragment fragment;
         Bundle bundle = new Bundle();
 
-        if(isPdf){
+        if (isPdf) {
             fragment = new PdfFragment();
             bundle.putString(KEY, Data);
             fragment.setArguments(bundle);

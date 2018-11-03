@@ -16,40 +16,36 @@ import java.util.List;
 import ir.mahdi.circulars.R;
 import ir.mahdi.circulars.model.OfflineItem;
 
-public class OfflineAdapter extends RecyclerView.Adapter<OfflineAdapter.PersonViewHolder>{
-    public static class PersonViewHolder extends RecyclerView.ViewHolder {
-        CardView cv;
-        TextView personName;
-
-        PersonViewHolder(View itemView) {
-            super(itemView);
-            cv = (CardView)itemView.findViewById(R.id.cv);
-            personName = (TextView)itemView.findViewById(R.id.person_name);
-        }
-    }
+public class OfflineAdapter extends RecyclerView.Adapter<OfflineAdapter.PersonViewHolder> {
     List<OfflineItem> persons;
+
+    public OfflineAdapter(List<OfflineItem> persons) {
+        this.persons = persons;
+    }
+
     public void setFilter(List<OfflineItem> countryModels) {
         persons = new ArrayList<>();
         persons.addAll(countryModels);
         notifyDataSetChanged();
     }
-    public OfflineAdapter(List<OfflineItem> persons){
-        this.persons = persons;
-    }
+
     @Override
     public int getItemCount() {
         return persons.size();
     }
+
     @Override
     public PersonViewHolder onCreateViewHolder(ViewGroup viewGroup, int i) {
         View v = LayoutInflater.from(viewGroup.getContext()).inflate(R.layout.offline_item_row, viewGroup, false);
         PersonViewHolder pvh = new PersonViewHolder(v);
         return pvh;
     }
+
     @Override
     public void onBindViewHolder(PersonViewHolder personViewHolder, int i) {
         personViewHolder.personName.setText(persons.get(i).name);
     }
+
     @Override
     public void onAttachedToRecyclerView(RecyclerView recyclerView) {
         super.onAttachedToRecyclerView(recyclerView);
@@ -60,6 +56,18 @@ public class OfflineAdapter extends RecyclerView.Adapter<OfflineAdapter.PersonVi
 
         void onLongClick(View view, int position);
     }
+
+    public static class PersonViewHolder extends RecyclerView.ViewHolder {
+        CardView cv;
+        TextView personName;
+
+        PersonViewHolder(View itemView) {
+            super(itemView);
+            cv = (CardView) itemView.findViewById(R.id.cv);
+            personName = (TextView) itemView.findViewById(R.id.person_name);
+        }
+    }
+
     public static class RecyclerTouchListener implements RecyclerView.OnItemTouchListener {
 
         private GestureDetector gestureDetector;

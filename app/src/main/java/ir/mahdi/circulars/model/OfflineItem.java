@@ -6,6 +6,7 @@ public class OfflineItem {
     public OfflineItem(String name) {
         this.name = name;
     }
+
     public String getTitle() {
         return name;
     }

@@ -16,6 +16,7 @@ import ir.mahdi.circulars.R;
 public class PdfFragment extends Fragment {
 
     PDFView pdfView;
+
     public PdfFragment() {
         // Required empty public constructor
     }
@@ -39,7 +40,7 @@ public class PdfFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_pdf, container, false);
 
         try {
-            Bundle bundle=getArguments();
+            Bundle bundle = getArguments();
             String filename = bundle.getString("FILE_NAME");
             pdfView = view.findViewById(R.id.pdfView);
             File pdf = new File(filename);

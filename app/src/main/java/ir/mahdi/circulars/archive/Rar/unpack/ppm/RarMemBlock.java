@@ -5,15 +5,15 @@
  *
  * Source: $HeadURL$
  * Last changed: $LastChangedDate$
- * 
- * the unrar licence applies to all junrar source and binary distributions 
+ *
+ * the unrar licence applies to all junrar source and binary distributions
  * you are not allowed to use this source to re-create the RAR compression algorithm
- * 
+ *
  * Here some html entities which can be used for escaping javadoc tags:
  * "&":  "&#038;" or "&amp;"
  * "<":  "&#060;" or "&lt;"
  * ">":  "&#062;" or "&gt;"
- * "@":  "&#064;" 
+ * "@":  "&#064;"
  */
 package ir.mahdi.circulars.archive.Rar.unpack.ppm;
 
@@ -59,15 +59,15 @@ public class RarMemBlock extends Pointer {
         return next;
     }
 
+    public void setNext(RarMemBlock next) {
+        setNext(next.getAddress());
+    }
+
     public void setNext(int next) {
         this.next = next;
         if (mem != null) {
             Raw.writeIntLittleEndian(mem, pos + 4, next);
         }
-    }
-
-    public void setNext(RarMemBlock next) {
-        setNext(next.getAddress());
     }
 
     public int getNU() {
@@ -91,15 +91,15 @@ public class RarMemBlock extends Pointer {
         return prev;
     }
 
+    public void setPrev(RarMemBlock prev) {
+        setPrev(prev.getAddress());
+    }
+
     public void setPrev(int prev) {
         this.prev = prev;
         if (mem != null) {
             Raw.writeIntLittleEndian(mem, pos + 8, prev);
         }
-    }
-
-    public void setPrev(RarMemBlock prev) {
-        setPrev(prev.getAddress());
     }
 
     public int getStamp() {

@@ -79,27 +79,27 @@ import ir.mahdi.circulars.model.Message;
 public class CircularFragment extends Fragment implements SwipeRefreshLayout.OnRefreshListener,
         MessagesAdapter.MessageAdapterListener, SearchView.OnQueryTextListener {
 
+    public boolean isClickable = true;
     Message message;
     String _Path = "/sdcard/بخشنامه/";
     boolean isSearchActive = false;
     List<Message> filteredModelList;
     String fileFullName;
-    private ArrayList<Message> messages;
-    private RecyclerView recyclerView;
-    private MessagesAdapter mAdapter;
-    private SwipeRefreshLayout swipeRefreshLayout;
-    private ActionMode actionMode;
-
-    public boolean isClickable = true;
     ProgressBar progressBar;
     String fileext;
     String mylFileName;
-    private ActionModeCallback actionModeCallback;
     String ArchivePath;
     String ArchiveFolderName;
     RecyclerView.LayoutManager mLayoutManager;
     ShimmerFrameLayout shimmerContainer;
     TextView txtNonItem;
+    private ArrayList<Message> messages;
+    private RecyclerView recyclerView;
+    private MessagesAdapter mAdapter;
+    private SwipeRefreshLayout swipeRefreshLayout;
+    private ActionMode actionMode;
+    private ActionModeCallback actionModeCallback;
+
     public CircularFragment() {
         // Required empty public constructor
     }
@@ -109,6 +109,149 @@ public class CircularFragment extends Fragment implements SwipeRefreshLayout.OnR
         Bundle args = new Bundle();
         fragment.setArguments(args);
         return fragment;
+    }
+
+    //region Create Dir and Extract Archive
+    public static boolean createDirIfNotExists(String path) {
+        boolean ret = true;
+
+        File file = new File(Environment.getExternalStorageDirectory(), path);
+        if (!file.exists()) {
+            if (!file.mkdirs()) {
+                ret = false;
+            }
+        }
+        return ret;
+    }
+
+    public static void extractArchive(String archive, String destination) {
+        if (archive == null || destination == null) {
+            throw new RuntimeException("archive and destination must me set");
+        }
+        File arch = new File(archive);
+        if (!arch.exists()) {
+            throw new RuntimeException("the archive does not exit: " + archive);
+        }
+        File dest = new File(destination);
+        if (!dest.exists() || !dest.isDirectory()) {
+            throw new RuntimeException(
+                    "the destination must exist and point to a directory: "
+                            + destination);
+        }
+        extractArchive(arch, dest);
+    }
+
+    public static void extractArchive(File archive, File destination) {
+        Archive arch = null;
+        try {
+            arch = new Archive(archive);
+        } catch (RarException e) {
+        } catch (IOException e1) {
+        }
+        if (arch != null) {
+            if (arch.isEncrypted()) {
+                // logger.warn("archive is encrypted cannot extreact");
+                return;
+            }
+            FileHeader fh = null;
+            while (true) {
+                fh = arch.nextFileHeader();
+                if (fh == null) {
+                    break;
+                }
+                if (fh.isEncrypted()) {
+                    // logger.warn("file is encrypted cannot extract: "
+                    //        + fh.getFileNameString());
+                    continue;
+                }
+                // logger.info("extracting: " + fh.getFileNameString());
+                try {
+                    if (fh.isDirectory()) {
+                        createDirectory(fh, destination);
+                    } else {
+                        File f = createFile(fh, destination);
+                        OutputStream stream = new FileOutputStream(f);
+                        arch.extractFile(fh, stream);
+                        stream.close();
+                    }
+                } catch (IOException e) {
+                    //   logger.error("error extracting the file", e);
+                } catch (RarException e) {
+                    //   logger.error("error extraction the file", e);
+                }
+            }
+        }
+    }
+
+    private static File createFile(FileHeader fh, File destination) {
+        File f = null;
+        String name = null;
+        if (fh.isFileHeader() && fh.isUnicode()) {
+            name = fh.getFileNameW();
+        } else {
+            name = fh.getFileNameString();
+        }
+        f = new File(destination, name);
+        if (!f.exists()) {
+            try {
+                f = makeFile(destination, name);
+            } catch (IOException e) {
+                //logger.error("error creating the new file: " + f.getName(), e);
+            }
+        }
+        return f;
+    }
+
+    private static File makeFile(File destination, String name)
+            throws IOException {
+        String[] dirs = name.split("\\\\");
+        if (dirs == null) {
+            return null;
+        }
+        String path = "";
+        int size = dirs.length;
+        if (size == 1) {
+            return new File(destination, name);
+        } else if (size > 1) {
+            for (int i = 0; i < dirs.length - 1; i++) {
+                path = path + File.separator + dirs[i];
+                new File(destination, path).mkdir();
+            }
+            path = path + File.separator + dirs[dirs.length - 1];
+            File f = new File(destination, path);
+            f.createNewFile();
+            return f;
+        } else {
+            return null;
+        }
+    }
+
+    private static void createDirectory(FileHeader fh, File destination) {
+        File f = null;
+        if (fh.isDirectory() && fh.isUnicode()) {
+            f = new File(destination, fh.getFileNameW());
+            if (!f.exists()) {
+                makeDirectory(destination, fh.getFileNameW());
+            }
+        } else if (fh.isDirectory() && !fh.isUnicode()) {
+            f = new File(destination, fh.getFileNameString());
+            if (!f.exists()) {
+                makeDirectory(destination, fh.getFileNameString());
+            }
+        }
+    }
+
+    private static void makeDirectory(File destination, String fileName) {
+        String[] dirs = fileName.split("\\\\");
+        if (dirs == null) {
+            return;
+        }
+        String path = "";
+        for (String dir : dirs) {
+            path = path + File.separator + dir;
+            new File(destination, path).mkdir();
+        }
+
     }
 
     @Override
@@ -171,158 +314,22 @@ public class CircularFragment extends Fragment implements SwipeRefreshLayout.OnR
         );
         return view;
     }
+
     private void getToolbarTitle() {
         int title_Position = Prefs.getSERVER(getContext());
         String[] title_Name = getResources().getStringArray(R.array.server);
         ((MainActivity) getActivity())
                 .setToolbarTitle(title_Name[title_Position]);
     }
-
-    //region Create Dir and Extract Archive
-    public static boolean createDirIfNotExists(String path) {
-        boolean ret = true;
-
-        File file = new File(Environment.getExternalStorageDirectory(), path);
-        if (!file.exists()) {
-            if (!file.mkdirs()) {
-                ret = false;
-            }
-        }
-        return ret;
-    }
-    public static void extractArchive(String archive, String destination) {
-        if (archive == null || destination == null) {
-            throw new RuntimeException("archive and destination must me set");
-        }
-        File arch = new File(archive);
-        if (!arch.exists()) {
-            throw new RuntimeException("the archive does not exit: " + archive);
-        }
-        File dest = new File(destination);
-        if (!dest.exists() || !dest.isDirectory()) {
-            throw new RuntimeException(
-                    "the destination must exist and point to a directory: "
-                            + destination);
-        }
-        extractArchive(arch, dest);
-    }
-    public static void extractArchive(File archive, File destination) {
-        Archive arch = null;
-        try {
-            arch = new Archive(archive);
-        } catch (RarException e) {
-        } catch (IOException e1) {
-        }
-        if (arch != null) {
-            if (arch.isEncrypted()) {
-                // logger.warn("archive is encrypted cannot extreact");
-                return;
-            }
-            FileHeader fh = null;
-            while (true) {
-                fh = arch.nextFileHeader();
-                if (fh == null) {
-                    break;
-                }
-                if (fh.isEncrypted()) {
-                    // logger.warn("file is encrypted cannot extract: "
-                    //        + fh.getFileNameString());
-                    continue;
-                }
-                // logger.info("extracting: " + fh.getFileNameString());
-                try {
-                    if (fh.isDirectory()) {
-                        createDirectory(fh, destination);
-                    } else {
-                        File f = createFile(fh, destination);
-                        OutputStream stream = new FileOutputStream(f);
-                        arch.extractFile(fh, stream);
-                        stream.close();
-                    }
-                } catch (IOException e) {
-                    //   logger.error("error extracting the file", e);
-                } catch (RarException e) {
-                    //   logger.error("error extraction the file", e);
-                }
-            }
-        }
-    }
-    private static File createFile(FileHeader fh, File destination) {
-        File f = null;
-        String name = null;
-        if (fh.isFileHeader() && fh.isUnicode()) {
-            name = fh.getFileNameW();
-        } else {
-            name = fh.getFileNameString();
-        }
-        f = new File(destination, name);
-        if (!f.exists()) {
-            try {
-                f = makeFile(destination, name);
-            } catch (IOException e) {
-                //logger.error("error creating the new file: " + f.getName(), e);
-            }
-        }
-        return f;
-    }
-    private static File makeFile(File destination, String name)
-            throws IOException {
-        String[] dirs = name.split("\\\\");
-        if (dirs == null) {
-            return null;
-        }
-        String path = "";
-        int size = dirs.length;
-        if (size == 1) {
-            return new File(destination, name);
-        } else if (size > 1) {
-            for (int i = 0; i < dirs.length - 1; i++) {
-                path = path + File.separator + dirs[i];
-                new File(destination, path).mkdir();
-            }
-            path = path + File.separator + dirs[dirs.length - 1];
-            File f = new File(destination, path);
-            f.createNewFile();
-            return f;
-        } else {
-            return null;
-        }
-    }
-    private static void createDirectory(FileHeader fh, File destination) {
-        File f = null;
-        if (fh.isDirectory() && fh.isUnicode()) {
-            f = new File(destination, fh.getFileNameW());
-            if (!f.exists()) {
-                makeDirectory(destination, fh.getFileNameW());
-            }
-        } else if (fh.isDirectory() && !fh.isUnicode()) {
-            f = new File(destination, fh.getFileNameString());
-            if (!f.exists()) {
-                makeDirectory(destination, fh.getFileNameString());
-            }
-        }
-    }
-    private static void makeDirectory(File destination, String fileName) {
-        String[] dirs = fileName.split("\\\\");
-        if (dirs == null) {
-            return;
-        }
-        String path = "";
-        for (String dir : dirs) {
-            path = path + File.separator + dir;
-            new File(destination, path).mkdir();
-        }
-
-    }
     //endregion
 
-    private void showShimmerEffect(boolean isTrue){
+    private void showShimmerEffect(boolean isTrue) {
         shimmerContainer.setAngle(ShimmerFrameLayout.MaskAngle.CW_180);
-        if (isTrue){
+        if (isTrue) {
             shimmerContainer.setVisibility(View.VISIBLE);
             swipeRefreshLayout.setRefreshing(false);
             shimmerContainer.startShimmerAnimation();
-        }else {
+        } else {
             shimmerContainer.setVisibility(View.GONE);
             swipeRefreshLayout.setRefreshing(false);
             shimmerContainer.stopShimmerAnimation();
@@ -331,7 +338,7 @@ public class CircularFragment extends Fragment implements SwipeRefreshLayout.OnR
 
     /**
      * @param message
-     * @param length Long = 0, Short = 1
+     * @param length  Long = 0, Short = 1
      */
 
     private void snackbarShow(String message, int length) {
@@ -344,6 +351,7 @@ public class CircularFragment extends Fragment implements SwipeRefreshLayout.OnR
         snackbar.setAction("تایید", null);
         snackbar.show();
     }
+
     private void chooseFile() {
 
         DialogProperties properties = new DialogProperties();
@@ -354,7 +362,7 @@ public class CircularFragment extends Fragment implements SwipeRefreshLayout.OnR
         properties.offset = new File(DialogConfigs.DEFAULT_DIR);
         String[] extens = new String[]{".pdf", ".jpg", ".png"};
         properties.extensions = extens;
-        FilePickerDialog dialog = new FilePickerDialog(getContext(),properties);
+        FilePickerDialog dialog = new FilePickerDialog(getContext(), properties);
         dialog.setTitle("انتخاب بخشنامه");
         dialog.setNegativeBtnName("انصراف");
         dialog.setPositiveBtnName("انتخاب");
@@ -362,9 +370,9 @@ public class CircularFragment extends Fragment implements SwipeRefreshLayout.OnR
             @Override
             public void onSelectedFilePaths(String[] files) {
                 if (files[0].contains(".pdf")) {
-                    loadFragment(true,"FILE_NAME", files[0]);
+                    loadFragment(true, "FILE_NAME", files[0]);
                 } else {
-                    loadFragment(false,"FILE_NAME", files[0]);
+                    loadFragment(false, "FILE_NAME", files[0]);
                 }
             }
         });
@@ -380,6 +388,7 @@ public class CircularFragment extends Fragment implements SwipeRefreshLayout.OnR
             mAdapter.notifyItemRangeRemoved(0, size);
         }
     }
+
     // deleting the messages from recycler view
     private void deleteMessages() {
         mAdapter.resetAnimationIndex();
@@ -394,6 +403,7 @@ public class CircularFragment extends Fragment implements SwipeRefreshLayout.OnR
 
         mAdapter.notifyDataSetChanged();
     }
+
     void deleteRecursive(File fileOrDirectory) {
         if (fileOrDirectory.isDirectory())
             for (File child : fileOrDirectory.listFiles())
@@ -401,6 +411,7 @@ public class CircularFragment extends Fragment implements SwipeRefreshLayout.OnR
 
         fileOrDirectory.delete();
     }
+
     private void chooseServer() {
         AlertDialog.Builder builder = new AlertDialog.Builder(getContext(), R.style.AlertDialogCustom);
         builder.setTitle(getString(R.string.select_region));
@@ -426,12 +437,13 @@ public class CircularFragment extends Fragment implements SwipeRefreshLayout.OnR
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
                 if (Prefs.getLUANCH(getContext()) == 0) {
-                   getActivity().finish();
+                    getActivity().finish();
                 }
             }
         });
         builder.show();
     }
+
     private int getRandomMaterialColor(String typeColor) {
         int returnColor = Color.GRAY;
         int arrayId = getResources().getIdentifier("mdcolor_" + typeColor, "array", getActivity().getPackageName());
@@ -444,6 +456,7 @@ public class CircularFragment extends Fragment implements SwipeRefreshLayout.OnR
         }
         return returnColor;
     }
+
     public boolean isStoragePermissionGranted() {
         if (Build.VERSION.SDK_INT >= 23) {
             if (getActivity().checkSelfPermission(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
@@ -470,6 +483,7 @@ public class CircularFragment extends Fragment implements SwipeRefreshLayout.OnR
         }
         return filteredModelList;
     }
+
     @Override
     public void onRefresh() {
         clear();
@@ -494,7 +508,7 @@ public class CircularFragment extends Fragment implements SwipeRefreshLayout.OnR
     @Override
     public void onIconClicked(int position) {
         if (actionMode == null) {
-            actionMode = ((AppCompatActivity)getActivity()).startSupportActionMode(actionModeCallback);
+            actionMode = ((AppCompatActivity) getActivity()).startSupportActionMode(actionModeCallback);
         }
         toggleSelection(position);
     }
@@ -518,8 +532,7 @@ public class CircularFragment extends Fragment implements SwipeRefreshLayout.OnR
     public void onMessageRowClicked(int position) {
         if (mAdapter.getSelectedItemCount() > 0) {
             enableActionMode(position);
-        }
-        else {
+        } else {
             if (isSearchActive) {
                 message = filteredModelList.get(position);
                 message.setRead(true);
@@ -559,11 +572,13 @@ public class CircularFragment extends Fragment implements SwipeRefreshLayout.OnR
             }
         }
     }
+
     private String getBaseUrl() {
         String[] get_BaseUrl = getResources().getStringArray(R.array.url);
         return get_BaseUrl[Prefs.getSERVER(getContext())];
     }
-    private void downloader(final String filename, final String path){
+
+    private void downloader(final String filename, final String path) {
 
 
         if (isClickable) {
@@ -625,6 +640,7 @@ public class CircularFragment extends Fragment implements SwipeRefreshLayout.OnR
                                         loadFragment(true, "FILE_NAME", _Path + fileFullName);
                                     }
                                 }
+
                                 @Override
                                 public void onError(Error error) {
                                     snackbarShow("دانلود با خطا مواجه شد", -1);
@@ -636,16 +652,19 @@ public class CircularFragment extends Fragment implements SwipeRefreshLayout.OnR
             }).execute(path);
         }
     }
+
     @Override
     public void onRowLongClicked(int position) {
         enableActionMode(position);
     }
+
     private void enableActionMode(int position) {
         if (actionMode == null) {
-            actionMode = ((AppCompatActivity)getActivity()).startSupportActionMode(actionModeCallback);
+            actionMode = ((AppCompatActivity) getActivity()).startSupportActionMode(actionModeCallback);
         }
         toggleSelection(position);
     }
+
     private void toggleSelection(int position) {
         mAdapter.toggleSelection(position);
         int count = mAdapter.getSelectedItemCount();
@@ -657,6 +676,7 @@ public class CircularFragment extends Fragment implements SwipeRefreshLayout.OnR
             actionMode.invalidate();
         }
     }
+
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
@@ -666,6 +686,53 @@ public class CircularFragment extends Fragment implements SwipeRefreshLayout.OnR
         }
         return super.onOptionsItemSelected(item);
     }
+
+    private void loadFragment(Boolean isPdf, String KEY, String Data) {
+        // load fragment
+        FragmentTransaction transaction = getActivity().getSupportFragmentManager().beginTransaction();
+        Fragment fragment;
+        Bundle bundle = new Bundle();
+
+        if (isPdf) {
+            fragment = new PdfFragment();
+            bundle.putString(KEY, Data);
+            fragment.setArguments(bundle);
+
+        } else {
+            fragment = new ImageFragment();
+            bundle.putString(KEY, Data);
+            fragment.setArguments(bundle);
+        }
+        transaction.replace(R.id.frame_container, fragment);
+        transaction.addToBackStack(null);
+        transaction.commit();
+    }
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        inflater.inflate(R.menu.menu_main, menu);
+        super.onCreateOptionsMenu(menu, inflater);
+        final MenuItem item = menu.findItem(R.id.action_search);
+        final SearchView searchView = (SearchView) MenuItemCompat.getActionView(item);
+        searchView.setQueryHint(getString(R.string.search_hint));
+        searchView.setOnQueryTextListener(this);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+            searchView.setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
+            searchView.setTextDirection(View.TEXT_DIRECTION_RTL);
+        }
+        searchView.addOnAttachStateChangeListener(new View.OnAttachStateChangeListener() {
+            @Override
+            public void onViewAttachedToWindow(View v) {
+                isSearchActive = true;
+            }
+
+            @Override
+            public void onViewDetachedFromWindow(View v) {
+                isSearchActive = false;
+            }
+        });
+    }
+
     static class GetFileInfo extends AsyncTask<String, Integer, String> {
         private final GetFileInfoListener mListener;
 
@@ -754,6 +821,7 @@ public class CircularFragment extends Fragment implements SwipeRefreshLayout.OnR
             });
         }
     }
+
     class JsoupListView extends AsyncTask<Void, String, ArrayList<Message>> {
 
         String url;
@@ -810,7 +878,7 @@ public class CircularFragment extends Fragment implements SwipeRefreshLayout.OnR
         @Override
         protected void onPostExecute(ArrayList<Message> ts) {
             super.onPostExecute(ts);
-            try{
+            try {
                 showShimmerEffect(false);
                 swipeRefreshLayout.setColorSchemeColors(getRandomMaterialColor("400"));
                 messages.clear();
@@ -826,54 +894,9 @@ public class CircularFragment extends Fragment implements SwipeRefreshLayout.OnR
 
                 mAdapter.notifyDataSetChanged();
                 onQueryTextChange("");
-            }catch(Exception ex){
+            } catch (Exception ex) {
 
             }
         }
-    }
-    private void loadFragment(Boolean isPdf, String KEY, String Data) {
-        // load fragment
-        FragmentTransaction transaction = getActivity().getSupportFragmentManager().beginTransaction();
-        Fragment fragment;
-        Bundle bundle = new Bundle();
-
-        if(isPdf){
-            fragment = new PdfFragment();
-            bundle.putString(KEY, Data);
-            fragment.setArguments(bundle);
-
-        } else {
-            fragment = new ImageFragment();
-            bundle.putString(KEY, Data);
-            fragment.setArguments(bundle);
-        }
-        transaction.replace(R.id.frame_container, fragment);
-        transaction.addToBackStack(null);
-        transaction.commit();
-    }
-
-    @Override
-    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        inflater.inflate(R.menu.menu_main, menu);
-        super.onCreateOptionsMenu(menu,inflater);
-        final MenuItem item = menu.findItem(R.id.action_search);
-        final SearchView searchView = (SearchView) MenuItemCompat.getActionView(item);
-        searchView.setQueryHint(getString(R.string.search_hint));
-        searchView.setOnQueryTextListener(this);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
-            searchView.setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
-            searchView.setTextDirection(View.TEXT_DIRECTION_RTL);
-        }
-        searchView.addOnAttachStateChangeListener(new View.OnAttachStateChangeListener() {
-            @Override
-            public void onViewAttachedToWindow(View v) {
-                isSearchActive = true;
-            }
-
-            @Override
-            public void onViewDetachedFromWindow(View v) {
-                isSearchActive = false;
-            }
-        });
     }
 }

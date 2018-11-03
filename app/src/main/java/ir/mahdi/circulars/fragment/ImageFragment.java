@@ -39,8 +39,8 @@ public class ImageFragment extends Fragment {
 
         try {
 
-            Bundle bundle=getArguments();
-            String filename=bundle.getString("FILE_NAME");
+            Bundle bundle = getArguments();
+            String filename = bundle.getString("FILE_NAME");
 
             Glide.with(this).load(filename).into(imageView);
         } catch (Exception ex) {

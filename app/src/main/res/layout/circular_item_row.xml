@@ -6,18 +6,18 @@
     android:clickable="true"
     android:focusable="true"
     android:orientation="vertical"
-    android:paddingBottom="@dimen/padding_list_row"
     android:paddingLeft="?listPreferredItemPaddingLeft"
+    android:paddingTop="@dimen/padding_list_row"
     android:paddingRight="?listPreferredItemPaddingRight"
-    android:paddingTop="@dimen/padding_list_row">
+    android:paddingBottom="@dimen/padding_list_row">
 
     <RelativeLayout
         android:id="@+id/icon_container"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
         android:layout_alignParentEnd="true"
         android:layout_alignParentRight="true"
-        android:layout_alignParentTop="true"
         android:orientation="vertical">
 
         <RelativeLayout
@@ -66,8 +66,8 @@
         android:id="@+id/message_container"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
+        android:layout_alignParentLeft="true"
         android:layout_alignParentTop="true"
         android:layout_toLeftOf="@+id/icon_container"
         android:clickable="true"

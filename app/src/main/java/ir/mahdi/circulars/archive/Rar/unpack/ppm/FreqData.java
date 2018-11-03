@@ -5,15 +5,15 @@
  *
  * Source: $HeadURL$
  * Last changed: $LastChangedDate$
- * 
- * the unrar licence applies to all junrar source and binary distributions 
+ *
+ * the unrar licence applies to all junrar source and binary distributions
  * you are not allowed to use this source to re-create the RAR compression algorithm
- * 
+ *
  * Here some html entities which can be used for escaping javadoc tags:
  * "&":  "&#038;" or "&amp;"
  * "<":  "&#060;" or "&lt;"
  * ">":  "&#062;" or "&gt;"
- * "@":  "&#064;" 
+ * "@":  "&#064;"
  */
 package ir.mahdi.circulars.archive.Rar.unpack.ppm;
 
@@ -55,12 +55,12 @@ public class FreqData extends Pointer {
         return Raw.readIntLittleEndian(mem, pos + 2);
     }
 
-    public void setStats(int state) {
-        Raw.writeIntLittleEndian(mem, pos + 2, state);
-    }
-
     public void setStats(State state) {
         setStats(state.getAddress());
+    }
+
+    public void setStats(int state) {
+        Raw.writeIntLittleEndian(mem, pos + 2, state);
     }
 
     public String toString() {

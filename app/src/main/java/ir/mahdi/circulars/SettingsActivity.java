@@ -25,12 +25,34 @@ import ir.mahdi.circulars.helper.Prefs;
 public class SettingsActivity extends AppCompatPreferenceActivity {
     private static final String TAG = SettingsActivity.class.getSimpleName();
 
+    /**
+     * Email client intent to send support mail
+     * Appends the necessary device information to email body
+     * useful when providing support
+     */
+    public static void sendFeedback(Context context) {
+        String body = null;
+        try {
+            body = context.getPackageManager().getPackageInfo(context.getPackageName(), 0).versionName;
+            body = "\n\n-----------------------------\nPlease don't remove this information\n Device OS: Android \n Device OS version: " +
+                    Build.VERSION.RELEASE + "\n App Version: " + body + "\n Device Brand: " + Build.BRAND +
+                    "\n Device Model: " + Build.MODEL + "\n Device Manufacturer: " + Build.MANUFACTURER;
+        } catch (PackageManager.NameNotFoundException e) {
+        }
+        Intent intent = new Intent(Intent.ACTION_SEND);
+        intent.setType("message/rfc822");
+        intent.putExtra(Intent.EXTRA_EMAIL, new String[]{context.getString(R.string.email)});
+        intent.putExtra(Intent.EXTRA_SUBJECT, "Query from android app");
+        intent.putExtra(Intent.EXTRA_TEXT, body);
+        context.startActivity(Intent.createChooser(intent, context.getString(R.string.choose_email_client)));
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
-        String languageToLoad  = "fa";
+        String languageToLoad = "fa";
         Locale locale = new Locale(languageToLoad);
         Locale.setDefault(locale);
         Configuration config = new Configuration();
@@ -41,10 +63,32 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
         // load settings fragment
         getFragmentManager().beginTransaction().replace(android.R.id.content, new MainPreferenceFragment()).commit();
     }
+
     @Override
     protected void attachBaseContext(Context newBase) {
         super.attachBaseContext(ViewPumpContextWrapper.wrap(newBase));
     }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == android.R.id.home) {
+            onBackPressed();
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onBackPressed() {
+        String languageToLoad = "en";
+        Locale locale = new Locale(languageToLoad);
+        Locale.setDefault(locale);
+        Configuration config = new Configuration();
+        config.locale = locale;
+        getBaseContext().getResources().updateConfiguration(config,
+                getBaseContext().getResources().getDisplayMetrics());
+        super.onBackPressed();
+    }
+
     public static class MainPreferenceFragment extends PreferenceFragment {
 
         PackageInfo pInfo;
@@ -69,7 +113,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
             Preference myPrefTelegram = findPreference(getString(R.string.key_telegram));
             Preference myPrefVer = findPreference(getString(R.string.key_version));
 
-            myPrefVer.setTitle(getString(R.string.app_version)+ " " + pInfo.versionName);
+            myPrefVer.setTitle(getString(R.string.app_version) + " " + pInfo.versionName);
             myPrefVer.setSummary(getString(R.string.app_version_name) + " " + pInfo.versionCode);
 
 
@@ -125,6 +169,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
                 }
             });
         }
+
         private void chooseServer() {
             AlertDialog.Builder builder = new AlertDialog.Builder(getActivity(), R.style.AlertDialogCustom);
             builder.setTitle(getString(R.string.select_region));
@@ -141,14 +186,16 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
             builder.setNegativeButton("بیخیال", null);
             builder.show();
         }
+
         private void changelog() {
             AlertDialog.Builder builder = new AlertDialog.Builder(getActivity(), R.style.AlertDialogCustom);
             builder.setTitle(getString(R.string.changeLogTitle));
-            builder.setItems(R.array.changeLog,null);
+            builder.setItems(R.array.changeLog, null);
             builder.setPositiveButton("حله", null);
             builder.setCancelable(false);
             builder.show();
         }
+
         private void snackbarShow(String message) {
             Snackbar snackbar = Snackbar.make(getView(), message, 0);
 
@@ -159,35 +206,5 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
             snackbar.setAction("تایید", null);
             snackbar.show();
         }
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        if (item.getItemId() == android.R.id.home) {
-            onBackPressed();
-        }
-        return super.onOptionsItemSelected(item);
-    }
-
-    /**
-     * Email client intent to send support mail
-     * Appends the necessary device information to email body
-     * useful when providing support
-     */
-    public static void sendFeedback(Context context) {
-        String body = null;
-        try {
-            body = context.getPackageManager().getPackageInfo(context.getPackageName(), 0).versionName;
-            body = "\n\n-----------------------------\nPlease don't remove this information\n Device OS: Android \n Device OS version: " +
-                    Build.VERSION.RELEASE + "\n App Version: " + body + "\n Device Brand: " + Build.BRAND +
-                    "\n Device Model: " + Build.MODEL + "\n Device Manufacturer: " + Build.MANUFACTURER;
-        } catch (PackageManager.NameNotFoundException e) {
-        }
-        Intent intent = new Intent(Intent.ACTION_SEND);
-        intent.setType("message/rfc822");
-        intent.putExtra(Intent.EXTRA_EMAIL, new String[]{context.getString(R.string.email)});
-        intent.putExtra(Intent.EXTRA_SUBJECT, "Query from android app");
-        intent.putExtra(Intent.EXTRA_TEXT, body);
-        context.startActivity(Intent.createChooser(intent, context.getString(R.string.choose_email_client)));
     }
 }
