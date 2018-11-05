@@ -31,7 +31,6 @@ import ir.mahdi.circulars.R;
 import ir.mahdi.circulars.adapter.OfflineAdapter;
 import ir.mahdi.circulars.model.OfflineItem;
 
-
 public class LocalFragment extends Fragment implements SearchView.OnQueryTextListener {
 
     String _Path = "/sdcard/بخشنامه/";
@@ -45,7 +44,7 @@ public class LocalFragment extends Fragment implements SearchView.OnQueryTextLis
         // Required empty public constructor
     }
 
-    public static LocalFragment newInstance(String param1, String param2) {
+    public static LocalFragment newInstance() {
         LocalFragment fragment = new LocalFragment();
         Bundle args = new Bundle();
         fragment.setArguments(args);

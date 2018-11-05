@@ -21,7 +21,7 @@ public class PdfFragment extends Fragment {
         // Required empty public constructor
     }
 
-    public static PdfFragment newInstance(String param1, String param2) {
+    public static PdfFragment newInstance() {
         PdfFragment fragment = new PdfFragment();
         Bundle args = new Bundle();
         fragment.setArguments(args);

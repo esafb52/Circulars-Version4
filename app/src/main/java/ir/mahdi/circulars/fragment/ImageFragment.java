@@ -17,7 +17,7 @@ public class ImageFragment extends Fragment {
         // Required empty public constructor
     }
 
-    public static ImageFragment newInstance(String param1, String param2) {
+    public static ImageFragment newInstance() {
         ImageFragment fragment = new ImageFragment();
         Bundle args = new Bundle();
         fragment.setArguments(args);

@@ -9,6 +9,7 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.support.annotation.Nullable;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
@@ -104,7 +105,7 @@ public class CircularFragment extends Fragment implements SwipeRefreshLayout.OnR
         // Required empty public constructor
     }
 
-    public static CircularFragment newInstance(String param1, String param2) {
+    public static CircularFragment newInstance() {
         CircularFragment fragment = new CircularFragment();
         Bundle args = new Bundle();
         fragment.setArguments(args);
@@ -261,11 +262,16 @@ public class CircularFragment extends Fragment implements SwipeRefreshLayout.OnR
         setHasOptionsMenu(true);
     }
 
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
+    View view;
+    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container,
+                             @Nullable Bundle savedInstanceState) {
+            if (view != null){
+                if((ViewGroup)view.getParent() != null)
+                    ((ViewGroup) view.getParent()).removeView(view);
+                return view;
+            }
         // Inflate the layout for this fragment
-        View view = inflater.inflate(R.layout.fragment_circular, container, false);
+        view = inflater.inflate(R.layout.fragment_circular, container, false);
 
         AppCenter.start(getActivity().getApplication(), "442e4224-ce5c-42ce-a183-08b03eb28414",
                 Analytics.class, Crashes.class);
