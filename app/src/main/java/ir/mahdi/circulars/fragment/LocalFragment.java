@@ -96,7 +96,7 @@ public class LocalFragment extends Fragment implements SearchView.OnQueryTextLis
         properties.root = new File(_Path);
         properties.error_dir = new File(DialogConfigs.DEFAULT_DIR);
         properties.offset = new File(DialogConfigs.DEFAULT_DIR);
-        String[] extens = new String[]{".pdf", ".jpg", ".png"};
+        String[] extens = new String[]{".pdf", ".jpg", ".png", ".tif"};
         properties.extensions = extens;
         FilePickerDialog dialog = new FilePickerDialog(getContext(), properties);
         dialog.setTitle("انتخاب بخشنامه");

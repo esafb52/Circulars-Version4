@@ -10,4 +10,32 @@
         android:layout_height="match_parent"
         android:src="@drawable/ic_launcher" />
 
+
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/fabNext"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top|end"
+        android:clickable="true"
+        android:src="@drawable/ic_arrow_forward_white_24dp"
+
+        android:visibility="gone" />
+
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/fabPrev"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top"
+        android:clickable="true"
+        android:src="@drawable/ic_arrow_back_white_24dp"
+        android:visibility="gone" />
+
+    <TextView
+        android:id="@+id/tifViewNumber"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top|center"
+        android:text="از"
+        android:visibility="gone" />
+
 </FrameLayout>

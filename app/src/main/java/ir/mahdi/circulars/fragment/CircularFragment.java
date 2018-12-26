@@ -266,7 +266,7 @@ public class CircularFragment extends Fragment implements SwipeRefreshLayout.OnR
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
             if (view != null){
-                if((ViewGroup)view.getParent() != null)
+                if (view.getParent() != null)
                     ((ViewGroup) view.getParent()).removeView(view);
                 return view;
             }
@@ -286,7 +286,7 @@ public class CircularFragment extends Fragment implements SwipeRefreshLayout.OnR
         progressBar = view.findViewById(R.id.progressBar);
         recyclerView = view.findViewById(R.id.recycler_view);
 
-        shimmerContainer = (ShimmerFrameLayout) view.findViewById(R.id.shimmer_view_container);
+        shimmerContainer = view.findViewById(R.id.shimmer_view_container);
 
         swipeRefreshLayout = view.findViewById(R.id.swipe_refresh_layout);
         swipeRefreshLayout.setOnRefreshListener(this);
@@ -366,7 +366,7 @@ public class CircularFragment extends Fragment implements SwipeRefreshLayout.OnR
         properties.root = new File(_Path);
         properties.error_dir = new File(DialogConfigs.DEFAULT_DIR);
         properties.offset = new File(DialogConfigs.DEFAULT_DIR);
-        String[] extens = new String[]{".pdf", ".jpg", ".png"};
+        String[] extens = new String[]{".pdf", ".jpg", ".png", ".tif"};
         properties.extensions = extens;
         FilePickerDialog dialog = new FilePickerDialog(getContext(), properties);
         dialog.setTitle("انتخاب بخشنامه");
