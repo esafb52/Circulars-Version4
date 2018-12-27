@@ -17,6 +17,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.github.angads25.filepicker.controller.DialogSelectionListener;
 import com.github.angads25.filepicker.model.DialogConfigs;
@@ -77,7 +78,7 @@ public class LocalFragment extends Fragment implements SearchView.OnQueryTextLis
             public void onClick(View view, int position) {
                 final String loc = ((TextView) rv.findViewHolderForAdapterPosition(position).itemView.findViewById(R.id.person_name)).getText().toString();
                 myTitle = loc;
-                chooseFile();
+                chooseFile(_Path + loc);
             }
 
             @Override
@@ -88,12 +89,12 @@ public class LocalFragment extends Fragment implements SearchView.OnQueryTextLis
         return view;
     }
 
-    private void chooseFile() {
+    private void chooseFile(String path) {
 
         DialogProperties properties = new DialogProperties();
         properties.selection_mode = DialogConfigs.SINGLE_MODE;
         properties.selection_type = DialogConfigs.FILE_SELECT;
-        properties.root = new File(_Path);
+        properties.root = new File(path);
         properties.error_dir = new File(DialogConfigs.DEFAULT_DIR);
         properties.offset = new File(DialogConfigs.DEFAULT_DIR);
         String[] extens = new String[]{".pdf", ".jpg", ".png", ".tif"};

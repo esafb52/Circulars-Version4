@@ -30,6 +30,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.webkit.URLUtil;
+import android.widget.AdapterView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
@@ -265,11 +266,11 @@ public class CircularFragment extends Fragment implements SwipeRefreshLayout.OnR
     View view;
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
-            if (view != null){
-                if (view.getParent() != null)
-                    ((ViewGroup) view.getParent()).removeView(view);
-                return view;
-            }
+        if (view != null){
+            if (view.getParent() != null)
+                ((ViewGroup) view.getParent()).removeView(view);
+            return view;
+        }
         // Inflate the layout for this fragment
         view = inflater.inflate(R.layout.fragment_circular, container, false);
 
@@ -358,12 +359,12 @@ public class CircularFragment extends Fragment implements SwipeRefreshLayout.OnR
         snackbar.show();
     }
 
-    private void chooseFile() {
+    private void chooseFile(String path) {
 
         DialogProperties properties = new DialogProperties();
         properties.selection_mode = DialogConfigs.SINGLE_MODE;
         properties.selection_type = DialogConfigs.FILE_SELECT;
-        properties.root = new File(_Path);
+        properties.root = new File(path);
         properties.error_dir = new File(DialogConfigs.DEFAULT_DIR);
         properties.offset = new File(DialogConfigs.DEFAULT_DIR);
         String[] extens = new String[]{".pdf", ".jpg", ".png", ".tif"};
@@ -552,7 +553,7 @@ public class CircularFragment extends Fragment implements SwipeRefreshLayout.OnR
                     loadFragment(true, "FILE_NAME", _Path + FixFileName + ".pdf");
                 } else {
                     if (checkExistZip.exists()) {
-                        chooseFile();
+                        chooseFile(_Path + FixFileName);
                     } else {
                         downloader(message.getFrom(), getBaseUrl() + message.getLink());
                     }
@@ -570,7 +571,7 @@ public class CircularFragment extends Fragment implements SwipeRefreshLayout.OnR
                     loadFragment(true, "FILE_NAME", _Path + FixFileName + ".pdf");
                 } else {
                     if (checkExistZip.exists()) {
-                        chooseFile();
+                        chooseFile(_Path + FixFileName);
                     } else {
                         downloader(message.getFrom(), getBaseUrl() + message.getLink());
                     }
@@ -635,13 +636,13 @@ public class CircularFragment extends Fragment implements SwipeRefreshLayout.OnR
                                         Decompress.unzip(ArchivePath, _Path + ArchiveFolderName, "");
                                         File file = new File(ArchivePath);
                                         file.delete();
-                                        chooseFile();
+                                        chooseFile(_Path + ArchiveFolderName);
                                     } else if (ArchivePath.contains("rar")) {
                                         createDirIfNotExists("بخشنامه" + "/" + message.getFrom());
                                         extractArchive(ArchivePath, _Path + message.getFrom());
                                         File file = new File(ArchivePath);
                                         file.delete();
-                                        chooseFile();
+                                        chooseFile(_Path + message.getFrom());
                                     } else {
                                         loadFragment(true, "FILE_NAME", _Path + fileFullName);
                                     }
