@@ -1,11 +1,13 @@
 package ir.mahdi.circulars.fragment;
 
 
+import android.Manifest;
+import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -17,12 +19,8 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
-import android.widget.Toast;
 
-import com.github.angads25.filepicker.controller.DialogSelectionListener;
-import com.github.angads25.filepicker.model.DialogConfigs;
-import com.github.angads25.filepicker.model.DialogProperties;
-import com.github.angads25.filepicker.view.FilePickerDialog;
+import com.afollestad.materialdialogs.folderselector.FileChooserDialog;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -34,6 +32,7 @@ import ir.mahdi.circulars.model.OfflineItem;
 
 public class LocalFragment extends Fragment implements SearchView.OnQueryTextListener {
 
+    private static final int STORAGE_PERMISSION_RC = 69;
     String _Path = "/sdcard/بخشنامه/";
     String myTitle;
     List<OfflineItem> filteredModelList;
@@ -91,29 +90,21 @@ public class LocalFragment extends Fragment implements SearchView.OnQueryTextLis
 
     private void chooseFile(String path) {
 
-        DialogProperties properties = new DialogProperties();
-        properties.selection_mode = DialogConfigs.SINGLE_MODE;
-        properties.selection_type = DialogConfigs.FILE_SELECT;
-        properties.root = new File(path);
-        properties.error_dir = new File(DialogConfigs.DEFAULT_DIR);
-        properties.offset = new File(DialogConfigs.DEFAULT_DIR);
-        String[] extens = new String[]{".pdf", ".jpg", ".png", ".tif"};
-        properties.extensions = extens;
-        FilePickerDialog dialog = new FilePickerDialog(getContext(), properties);
-        dialog.setTitle("انتخاب بخشنامه");
-        dialog.setNegativeBtnName("انصراف");
-        dialog.setPositiveBtnName("انتخاب");
-        dialog.setDialogSelectionListener(new DialogSelectionListener() {
-            @Override
-            public void onSelectedFilePaths(String[] files) {
-                if (files[0].contains(".pdf")) {
-                    loadFragment(true, "FILE_NAME", files[0]);
-                } else {
-                    loadFragment(false, "FILE_NAME", files[0]);
-                }
-            }
-        });
-        dialog.show();
+        if (ActivityCompat.checkSelfPermission(
+                getContext(), Manifest.permission.READ_EXTERNAL_STORAGE)
+                != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(
+                    getActivity(),
+                    new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
+                    STORAGE_PERMISSION_RC);
+            return;
+        }
+        new FileChooserDialog.Builder(getContext())
+                .initialPath(path)
+                .mimeType("application/*")
+                .extensionsFilter(".pdf", ".jpg", ".png", ".tif")
+                .goUpLabel("قبلی")
+                .show(getActivity());
     }
 
     private void initializeData() {
@@ -178,26 +169,5 @@ public class LocalFragment extends Fragment implements SearchView.OnQueryTextLis
             }
         }
         return filteredModelList;
-    }
-
-    private void loadFragment(Boolean isPdf, String KEY, String Data) {
-        // load fragment
-        FragmentTransaction transaction = getActivity().getSupportFragmentManager().beginTransaction();
-        Fragment fragment;
-        Bundle bundle = new Bundle();
-
-        if (isPdf) {
-            fragment = new PdfFragment();
-            bundle.putString(KEY, Data);
-            fragment.setArguments(bundle);
-
-        } else {
-            fragment = new ImageFragment();
-            bundle.putString(KEY, Data);
-            fragment.setArguments(bundle);
-        }
-        transaction.replace(R.id.frame_container, fragment);
-        transaction.addToBackStack(null);
-        transaction.commit();
     }
 }

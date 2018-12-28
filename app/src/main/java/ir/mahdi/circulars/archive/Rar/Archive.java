@@ -80,7 +80,7 @@ public class Archive implements Closeable {
     }
 
     public Archive(VolumeManager volumeManager, UnrarCallback unrarCallback)
-            throws RarException, IOException {
+            throws IOException {
         this.volumeManager = volumeManager;
         this.unrarCallback = unrarCallback;
 
@@ -405,7 +405,7 @@ public class Archive implements Closeable {
         }
     }
 
-    public InputStream getInputStream(final FileHeader hd) throws RarException,
+    public InputStream getInputStream(final FileHeader hd) throws
             IOException {
         final PipedInputStream in = new PipedInputStream(32 * 1024);
         final PipedOutputStream out = new PipedOutputStream(in);

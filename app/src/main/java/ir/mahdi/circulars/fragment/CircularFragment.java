@@ -1,6 +1,7 @@
 package ir.mahdi.circulars.fragment;
 
 
+import android.Manifest;
 import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.content.res.TypedArray;
@@ -23,6 +24,7 @@ import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SearchView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -30,20 +32,16 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.webkit.URLUtil;
-import android.widget.AdapterView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import com.afollestad.materialdialogs.folderselector.FileChooserDialog;
 import com.downloader.Error;
 import com.downloader.OnDownloadListener;
 import com.downloader.OnProgressListener;
 import com.downloader.PRDownloader;
 import com.downloader.Progress;
 import com.facebook.shimmer.ShimmerFrameLayout;
-import com.github.angads25.filepicker.controller.DialogSelectionListener;
-import com.github.angads25.filepicker.model.DialogConfigs;
-import com.github.angads25.filepicker.model.DialogProperties;
-import com.github.angads25.filepicker.view.FilePickerDialog;
 import com.microsoft.appcenter.AppCenter;
 import com.microsoft.appcenter.analytics.Analytics;
 import com.microsoft.appcenter.crashes.Crashes;
@@ -81,6 +79,7 @@ import ir.mahdi.circulars.model.Message;
 public class CircularFragment extends Fragment implements SwipeRefreshLayout.OnRefreshListener,
         MessagesAdapter.MessageAdapterListener, SearchView.OnQueryTextListener {
 
+    private static final int STORAGE_PERMISSION_RC = 69;
     public boolean isClickable = true;
     Message message;
     String _Path = "/sdcard/بخشنامه/";
@@ -349,41 +348,37 @@ public class CircularFragment extends Fragment implements SwipeRefreshLayout.OnR
      */
 
     private void snackbarShow(String message, int length) {
-        Snackbar snackbar = Snackbar.make(getActivity().getWindow().getDecorView(), message, length);
+        try {
+            Snackbar snackbar = Snackbar.make(getActivity().getWindow().getDecorView(), message, length);
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
-            TextView view1 = snackbar.getView().findViewById(android.support.design.R.id.snackbar_text);
-            view1.setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+                TextView view1 = snackbar.getView().findViewById(android.support.design.R.id.snackbar_text);
+                view1.setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
+            }
+            snackbar.setAction("تایید", null);
+            snackbar.show();
+        } catch (NullPointerException nx) {
+            Log.d("NullPointerException", nx.getMessage());
         }
-        snackbar.setAction("تایید", null);
-        snackbar.show();
     }
 
     private void chooseFile(String path) {
 
-        DialogProperties properties = new DialogProperties();
-        properties.selection_mode = DialogConfigs.SINGLE_MODE;
-        properties.selection_type = DialogConfigs.FILE_SELECT;
-        properties.root = new File(path);
-        properties.error_dir = new File(DialogConfigs.DEFAULT_DIR);
-        properties.offset = new File(DialogConfigs.DEFAULT_DIR);
-        String[] extens = new String[]{".pdf", ".jpg", ".png", ".tif"};
-        properties.extensions = extens;
-        FilePickerDialog dialog = new FilePickerDialog(getContext(), properties);
-        dialog.setTitle("انتخاب بخشنامه");
-        dialog.setNegativeBtnName("انصراف");
-        dialog.setPositiveBtnName("انتخاب");
-        dialog.setDialogSelectionListener(new DialogSelectionListener() {
-            @Override
-            public void onSelectedFilePaths(String[] files) {
-                if (files[0].contains(".pdf")) {
-                    loadFragment(true, "FILE_NAME", files[0]);
-                } else {
-                    loadFragment(false, "FILE_NAME", files[0]);
-                }
-            }
-        });
-        dialog.show();
+        if (ActivityCompat.checkSelfPermission(
+                getContext(), Manifest.permission.READ_EXTERNAL_STORAGE)
+                != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(
+                    getActivity(),
+                    new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
+                    STORAGE_PERMISSION_RC);
+            return;
+        }
+        new FileChooserDialog.Builder(getContext())
+                .initialPath(path)
+                .mimeType("application/*")
+                .extensionsFilter(".pdf", ".jpg", ".png", ".tif")
+                .goUpLabel("قبلی")
+                .show(getActivity());
     }
 
     public void clear() {
@@ -537,47 +532,52 @@ public class CircularFragment extends Fragment implements SwipeRefreshLayout.OnR
 
     @Override
     public void onMessageRowClicked(int position) {
-        if (mAdapter.getSelectedItemCount() > 0) {
-            enableActionMode(position);
-        } else {
-            if (isSearchActive) {
-                message = filteredModelList.get(position);
-                message.setRead(true);
-                filteredModelList.set(position, message);
-                mAdapter.notifyDataSetChanged();
-                String FixFileName = message.getFrom();
-                FixFileName = FixFileName.replaceAll("/", "");
-                File checkExist = new File(_Path + FixFileName + ".pdf");
-                File checkExistZip = new File(_Path + FixFileName);
-                if (checkExist.exists()) {
-                    loadFragment(true, "FILE_NAME", _Path + FixFileName + ".pdf");
-                } else {
-                    if (checkExistZip.exists()) {
-                        chooseFile(_Path + FixFileName);
-                    } else {
-                        downloader(message.getFrom(), getBaseUrl() + message.getLink());
-                    }
-                }
+        try {
+            if (mAdapter.getSelectedItemCount() > 0) {
+                enableActionMode(position);
             } else {
-                message = messages.get(position);
-                message.setRead(true);
-                messages.set(position, message);
-                mAdapter.notifyDataSetChanged();
-                String FixFileName = message.getFrom();
-                FixFileName = FixFileName.replaceAll("/", "");
-                File checkExist = new File(_Path + FixFileName + ".pdf");
-                File checkExistZip = new File(_Path + FixFileName);
-                if (checkExist.exists()) {
-                    loadFragment(true, "FILE_NAME", _Path + FixFileName + ".pdf");
-                } else {
-                    if (checkExistZip.exists()) {
-                        chooseFile(_Path + FixFileName);
+                if (isSearchActive) {
+                    message = filteredModelList.get(position);
+                    message.setRead(true);
+                    filteredModelList.set(position, message);
+                    mAdapter.notifyDataSetChanged();
+                    String FixFileName = message.getFrom();
+                    FixFileName = FixFileName.replaceAll("/", "");
+                    File checkExist = new File(_Path + FixFileName + ".pdf");
+                    File checkExistZip = new File(_Path + FixFileName);
+                    if (checkExist.exists()) {
+                        loadFragment(true, "FILE_NAME", _Path + FixFileName + ".pdf");
                     } else {
-                        downloader(message.getFrom(), getBaseUrl() + message.getLink());
+                        if (checkExistZip.exists()) {
+                            chooseFile(_Path + FixFileName);
+                        } else {
+                            downloader(message.getFrom(), getBaseUrl() + message.getLink());
+                        }
+                    }
+                } else {
+                    message = messages.get(position);
+                    message.setRead(true);
+                    messages.set(position, message);
+                    mAdapter.notifyDataSetChanged();
+                    String FixFileName = message.getFrom();
+                    FixFileName = FixFileName.replaceAll("/", "");
+                    File checkExist = new File(_Path + FixFileName + ".pdf");
+                    File checkExistZip = new File(_Path + FixFileName);
+                    if (checkExist.exists()) {
+                        loadFragment(true, "FILE_NAME", _Path + FixFileName + ".pdf");
+                    } else {
+                        if (checkExistZip.exists()) {
+                            chooseFile(_Path + FixFileName);
+                        } else {
+                            downloader(message.getFrom(), getBaseUrl() + message.getLink());
+                        }
                     }
                 }
             }
+        } catch (IndexOutOfBoundsException index) {
+            Log.d("IndexOOfBounds", index.getMessage());
         }
+
     }
 
     private String getBaseUrl() {
@@ -598,63 +598,68 @@ public class CircularFragment extends Fragment implements SwipeRefreshLayout.OnR
             new GetFileInfo(new GetFileInfo.GetFileInfoListener() {
                 @Override
                 public void onTaskCompleted(String fileName) {
-                    mylFileName = fileName.replaceAll("/", "");
-                    fileext = FilenameUtils.getExtension(mylFileName);
-                    String dPath;
-                    if (fileext.contains("pdf")) {
+                    try {
 
-                        ArchivePath = _Path + filename;
-                        ArchiveFolderName = filename.replaceAll("." + fileext, "");
-                        dPath = _Path + ArchiveFolderName;
-                        fileFullName = ArchiveFolderName + "/" + mylFileName;
-                    } else {
                         mylFileName = fileName.replaceAll("/", "");
                         fileext = FilenameUtils.getExtension(mylFileName);
-                        ArchivePath = _Path + mylFileName;
+                        String dPath;
+                        if (fileext.contains("pdf")) {
 
-                        ArchiveFolderName = mylFileName.replaceAll("." + fileext, "");
-                        dPath = _Path;
-                    }
-                    int downloadId = PRDownloader.download(path, dPath, mylFileName)
-                            .build()
-                            .setOnProgressListener(new OnProgressListener() {
-                                @Override
-                                public void onProgress(Progress progress) {
-                                    long progressPercent = progress.currentBytes * 100 / progress.totalBytes;
-                                    progressBar.setProgress((int) progressPercent);
+                            ArchivePath = _Path + filename;
+                            ArchiveFolderName = filename.replaceAll("." + fileext, "");
+                            dPath = _Path + ArchiveFolderName;
+                            fileFullName = ArchiveFolderName + "/" + mylFileName;
+                        } else {
+                            mylFileName = fileName.replaceAll("/", "");
+                            fileext = FilenameUtils.getExtension(mylFileName);
+                            ArchivePath = _Path + mylFileName;
 
-                                }
-                            })
-                            .start(new OnDownloadListener() {
-                                @Override
-                                public void onDownloadComplete() {
-                                    progressBar.setProgress(0);
+                            ArchiveFolderName = mylFileName.replaceAll("." + fileext, "");
+                            dPath = _Path;
+                        }
+                        int downloadId = PRDownloader.download(path, dPath, mylFileName)
+                                .build()
+                                .setOnProgressListener(new OnProgressListener() {
+                                    @Override
+                                    public void onProgress(Progress progress) {
+                                        long progressPercent = progress.currentBytes * 100 / progress.totalBytes;
+                                        progressBar.setProgress((int) progressPercent);
 
-                                    isClickable = true;
-
-                                    if (ArchivePath.contains("zip")) {
-                                        Decompress.unzip(ArchivePath, _Path + ArchiveFolderName, "");
-                                        File file = new File(ArchivePath);
-                                        file.delete();
-                                        chooseFile(_Path + ArchiveFolderName);
-                                    } else if (ArchivePath.contains("rar")) {
-                                        createDirIfNotExists("بخشنامه" + "/" + message.getFrom());
-                                        extractArchive(ArchivePath, _Path + message.getFrom());
-                                        File file = new File(ArchivePath);
-                                        file.delete();
-                                        chooseFile(_Path + message.getFrom());
-                                    } else {
-                                        loadFragment(true, "FILE_NAME", _Path + fileFullName);
                                     }
-                                }
+                                })
+                                .start(new OnDownloadListener() {
+                                    @Override
+                                    public void onDownloadComplete() {
+                                        progressBar.setProgress(0);
 
-                                @Override
-                                public void onError(Error error) {
-                                    snackbarShow("دانلود با خطا مواجه شد", -1);
-                                    progressBar.setProgress(0);
-                                    isClickable = true;
-                                }
-                            });
+                                        isClickable = true;
+
+                                        if (ArchivePath.contains("zip")) {
+                                            Decompress.unzip(ArchivePath, _Path + ArchiveFolderName, "");
+                                            File file = new File(ArchivePath);
+                                            file.delete();
+                                            chooseFile(_Path + ArchiveFolderName);
+                                        } else if (ArchivePath.contains("rar")) {
+                                            createDirIfNotExists("بخشنامه" + "/" + message.getFrom());
+                                            extractArchive(ArchivePath, _Path + message.getFrom());
+                                            File file = new File(ArchivePath);
+                                            file.delete();
+                                            chooseFile(_Path + message.getFrom());
+                                        } else {
+                                            loadFragment(true, "FILE_NAME", _Path + fileFullName);
+                                        }
+                                    }
+
+                                    @Override
+                                    public void onError(Error error) {
+                                        snackbarShow("دانلود با خطا مواجه شد", -1);
+                                        progressBar.setProgress(0);
+                                        isClickable = true;
+                                    }
+                                });
+                    } catch (NullPointerException nx) {
+                        Log.d("NullPointerException", nx.getMessage());
+                    }
                 }
             }).execute(path);
         }
@@ -877,7 +882,10 @@ public class CircularFragment extends Fragment implements SwipeRefreshLayout.OnR
                 return cl;
             } catch (IOException e) {
                 e.printStackTrace();
+            } catch (IllegalStateException ils) {
+                Log.d("IllegalStateException", ils.getMessage());
             } catch (RuntimeException x) {
+                Log.d("RuntimeException", x.getMessage());
             }
             return null;
         }

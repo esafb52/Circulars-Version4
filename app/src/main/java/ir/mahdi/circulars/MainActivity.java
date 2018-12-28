@@ -20,14 +20,20 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 
+import com.afollestad.materialdialogs.folderselector.FileChooserDialog;
+
+import java.io.File;
+
 import io.github.inflationx.viewpump.ViewPumpContextWrapper;
 import ir.mahdi.circulars.fragment.CircularFragment;
+import ir.mahdi.circulars.fragment.ImageFragment;
 import ir.mahdi.circulars.fragment.LocalFragment;
+import ir.mahdi.circulars.fragment.PdfFragment;
 import ir.mahdi.circulars.helper.BottomNavigationBehavior;
 import ir.mahdi.circulars.helper.CustomTypefaceSpan;
 import ir.mahdi.circulars.helper.Prefs;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements FileChooserDialog.FileCallback {
 
     private ActionBar toolbar;
     private BottomNavigationView.OnNavigationItemSelectedListener mOnNavigationItemSelectedListener
@@ -63,7 +69,7 @@ public class MainActivity extends AppCompatActivity {
         forceRTLIfSupported();
         toolbar = getSupportActionBar();
 
-        BottomNavigationView navigation = (BottomNavigationView) findViewById(R.id.navigation);
+        BottomNavigationView navigation = findViewById(R.id.navigation);
         navigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener);
 
         Menu m = navigation.getMenu();
@@ -139,5 +145,40 @@ public class MainActivity extends AppCompatActivity {
 
     public void setToolbarTitle(String Title) {
         toolbar.setTitle(Title);
+    }
+
+    @Override
+    public void onFileSelection(@NonNull FileChooserDialog dialog, @NonNull File file) {
+        if (file.getName().contains(".pdf")) {
+            loadFragment(true, "FILE_NAME", file.getPath());
+        } else {
+            loadFragment(false, "FILE_NAME", file.getPath());
+        }
+    }
+
+    @Override
+    public void onFileChooserDismissed(@NonNull FileChooserDialog dialog) {
+
+    }
+
+    private void loadFragment(Boolean isPdf, String KEY, String Data) {
+        // load fragment
+        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+        Fragment fragment;
+        Bundle bundle = new Bundle();
+
+        if (isPdf) {
+            fragment = new PdfFragment();
+            bundle.putString(KEY, Data);
+            fragment.setArguments(bundle);
+
+        } else {
+            fragment = new ImageFragment();
+            bundle.putString(KEY, Data);
+            fragment.setArguments(bundle);
+        }
+        transaction.replace(R.id.frame_container, fragment);
+        transaction.addToBackStack(null);
+        transaction.commit();
     }
 }
